@@ -1,0 +1,35 @@
+<div class="container pt-4 pb-4">
+  <ng-template #loginDialog>
+
+        <img class="mx-auto d-block" src="./assets/logo.png" height="80">
+        <form [formGroup]="form" (ngSubmit)="login(form.value)">
+          <div mat-dialog-content>
+            <div class="form-group mt-4">
+              <div class="loginLabels">
+                <mat-label>Email or Nickname</mat-label>
+              </div>
+              <input class="form-control" name="email" formControlName="email" required>
+              <mat-error *ngIf="emailError !== ''">{{ emailError }}</mat-error>
+            </div>
+
+            <div class="form-group">
+              <div class="loginLabels">
+                <mat-label>Password</mat-label>
+              </div>
+              <input type="password" [type]="hide ? 'password' : 'text'" class="form-control" name="password" formControlName="password" required>
+              <mat-error *ngIf="passError !== ''">{{ passError }}</mat-error>
+            </div>
+
+            <p *ngIf="accessError">{{ accessError }}</p>
+
+            <button mat-raised-button color="primary" class="mx-auto d-block">Login</button>
+            <h6 class="mt-3 mb-3 text-center">OR</h6>
+            <button mat-raised-button color="primary" (click)="goToSignUp()">Sign up for a free ClubEG account!</button>
+
+          </div>
+
+        </form>
+
+  </ng-template>
+
+</div>

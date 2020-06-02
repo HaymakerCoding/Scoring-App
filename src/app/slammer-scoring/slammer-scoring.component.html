@@ -1,0 +1,21 @@
+<div class="container-fluid pl-0 pr-0 pt-0 pb-4">
+
+  <div *ngIf="loadingPercentage < 100" mode="determinate">
+    <mat-progress-bar  [value]="loadingPercentage"></mat-progress-bar>
+    <div class="full-width text-center mt-2">Loading</div>
+  </div>
+
+  <div class="inner-container" *ngIf="loadingPercentage === 100">
+    <section class="title-container mb-3">
+      <h1 [innerHTML]="event.name"></h1>
+      <h2 [innerHTML]="(event.date | date)"></h2>
+      <img class="league-logo" src="./assets/slammer-logo.png">
+    </section>
+
+    <app-enter-scores *ngIf="this.currentView === 'all'" [event]="event" [pars]="pars"></app-enter-scores>
+    <app-bottom-nav [showSubmit]="true" [eventId]="event.id"></app-bottom-nav>
+
+  </div>
+
+
+</div>

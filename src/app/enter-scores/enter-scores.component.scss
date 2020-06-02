@@ -1,0 +1,51 @@
+.result-rows{
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height:50px;
+    border-top:1px solid lightgray;
+}
+.result-rows-left{
+    display: flex;
+    align-items: center;
+    height:50px;
+    padding-left:10px;
+    cursor:pointer;
+    border-top:1px solid lightgray;
+}
+.result-rows-left:hover, .active-player{
+    color:navy;
+    background-color:lime;
+}
+.score-btns{
+    width:30px!important;
+    min-width: unset!important;
+    font-size:18px;
+    padding-left:4px;
+    padding-right:4px;
+    padding:0;
+    background-color:#ff8c00;
+}
+.scores{
+    font-weight: bold;
+}
+.col-titles{
+    font-size: 14px;
+    margin-bottom: 5px;
+    color: rgb(92, 88, 88);
+}
+.par-text{
+    width:80px; font-weight:bold;
+    background-color:lightgray; border: 2px solid navy;
+    font-size: 20px;
+    border-radius: 4px;
+    margin: auto;
+
+}
+.result-text{
+    color:navy;
+    font-weight: 600;
+}
+.navBtns{
+    width:200px;   
+}

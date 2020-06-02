@@ -1,0 +1,15 @@
+<mat-toolbar style="background-image:url('https://clubeg.golf/background.jpg'); z-index:2; height:60px;background-position: bottom;">
+  <span class="title">ClubEG Scoring</span>
+  <span class="filler"></span>
+  <mat-icon class="mr-2" (click)="toggleUserMenu()" *ngIf="loggedIn === true">account_box</mat-icon>
+  <div class="user-name" *ngIf="loggedIn === true && userFullName">{{ userFullName }}</div>
+
+  <div *ngIf="loggedIn === true && showUserMenu === true" style="position:absolute; background-color:white; z-index:2; padding:10px; top:0; border:1px solid lightgray; right:0px; height:250px; width:200px;">
+    <div style="width:100%; height:38px; display:flex; align-items: center; justify-content: center;">
+      <mat-icon (click)="toggleUserMenu()" class="mr-3">account_box</mat-icon>
+      <span class="user-name">{{ userFullName }}</span>
+    </div>
+    <hr>
+    <button (click)="logout(); toggleUserMenu()" mat-raised-button style="width:100%; margin-top:5px">Logout</button>
+  </div>
+</mat-toolbar>

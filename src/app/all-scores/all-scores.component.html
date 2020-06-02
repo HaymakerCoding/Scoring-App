@@ -1,0 +1,58 @@
+<div class="container pt-2 pb-2">
+
+  <div *ngIf="loadingPercentage < 100" mode="determinate">
+    <mat-progress-bar  [value]="loadingPercentage"></mat-progress-bar>
+    <div class="full-width text-center mt-2">Loading</div>
+  </div>
+
+  <div *ngIf="loadingPercentage === 100">
+
+    <div class="table-container" *ngFor="let group of groups; let i = index">
+      <table style="width:800px;" class="table table-sm mat-elevation-z4">
+
+        <thead>
+          <tr>
+            <th colspan="20" class="group-header">Group {{ (i + 1) }}</th>
+          </tr>
+          <tr class="hole-cols stickCol">
+            <th class="sticky">Hole</th>
+            <th *ngFor="let par of pars" class="text-center">{{ par.hole }}</th>
+            <th class="text-center">Total</th>
+          </tr>
+          <tr class="par-cols stickCol">
+            <th class="sticky">Par</th>
+            <th *ngFor="let par of pars" class="text-center">{{ par.par }}</th>
+            <th class="text-center">{{ getTotalPars() }}</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngIf="group.player1id">
+            <td class="sticky-col">{{ group.player1nickname }}</td>
+            <td *ngFor="let par of pars" class="text-center">{{ getHoleScore(group.player1id, par.hole) }}</td>
+            <td class="text-center">{{ getPlayerTotal(group.player1id) }}</td>
+          </tr>
+          <tr *ngIf="group.player2id">
+            <td class="sticky-col">{{ group.player2nickname }}</td>
+            <td *ngFor="let par of pars" class="text-center">{{ getHoleScore(group.player2id, par.hole) }}</td>
+            <td class="text-center">{{ getPlayerTotal(group.player2id) }}</td>
+          </tr>
+          <tr *ngIf="group.player3id">
+            <td class="sticky-col">{{ group.player3nickname }}</td>
+            <td *ngFor="let par of pars" class="text-center">{{ getHoleScore(group.player3id, par.hole) }}</td>
+            <td class="text-center">{{ getPlayerTotal(group.player3id) }}</td>
+          </tr>
+          <tr *ngIf="group.player4id">
+            <td class="sticky-col">{{ group.player4nickname }}</td>
+            <td *ngFor="let par of pars" class="text-center">{{ getHoleScore(group.player4id, par.hole) }}</td>
+            <td class="text-center">{{ getPlayerTotal(group.player4id) }}</td>
+          </tr>
+        </tbody>
+
+      </table>
+    </div>
+
+    <app-bottom-nav [showSubmit]="false" [eventId]="event.id"></app-bottom-nav>
+
+  </div>
+
+</div>

@@ -1,0 +1,81 @@
+<div class="container">
+
+  <div class="row">
+    <div class="col-4 pr-0 text-center">
+      <mat-form-field appearance="outline" style="margin: auto; width:100%;">
+        <mat-label>
+          Hole
+        </mat-label>
+        <mat-select [(ngModel)]="holeSelected" (selectionChange)="onHoleChange()">
+          <mat-option *ngFor="let hole of holes" [value]="hole">{{ hole }}</mat-option>
+        </mat-select>
+      </mat-form-field>
+    </div>
+    <div class="col-4 text-center" style="display: flex; align-items: top;">
+      <div style="width:100%; margin-top:15px;">
+        <div class="par-text">Par {{ getPar(holeSelected) }}</div>
+      </div>
+    </div>
+    <div class="col-4 pl-0 text-center">
+      <mat-form-field appearance="outline" style="margin: auto; width:100%;">
+        <mat-label>
+          Match Starts At
+        </mat-label>
+        <mat-select [(ngModel)]="startHoleSelected">
+          <mat-option *ngFor="let hole of holes" [value]="hole">{{ hole }}</mat-option>
+        </mat-select>
+      </mat-form-field>
+    </div>
+  </div>
+
+  <div class="row" *ngIf="loading === false">
+    <div class="col-4 pr-0">
+      <div class="col-titles">Player</div>
+      <div [class.active-player]="isActivePlayer(group.player1id)" *ngIf="group.player1id"
+        (click)="activePlayerId = group.player1id; activePlayerNumber = 1" class="result-rows-left">{{ group.player1nickname }}</div>
+      <div [class.active-player]="isActivePlayer(group.player2id)" *ngIf="group.player2id"
+        (click)="activePlayerId = group.player2id; activePlayerNumber = 2" class="result-rows-left">{{ group.player2nickname }}</div>
+      <div [class.active-player]="isActivePlayer(group.player3id)" *ngIf="group.player3id"
+        (click)="activePlayerId = group.player3id; activePlayerNumber = 3" class="result-rows-left">{{ group.player3nickname }}</div>
+      <div [class.active-player]="isActivePlayer(group.player4id)" *ngIf="group.player4id" style="border-bottom:1px solid lightgray;"
+        (click)="activePlayerId = group.player4id; activePlayerNumber = 4" class="result-rows-left">{{ group.player4nickname }}</div>
+    </div>
+    <div class="col-4 pr-0 pl-0 text-center">
+      <div class="col-titles">Score</div>
+      <div class="result-rows" *ngIf="group.player1id">
+        <button class="score-btns" (click)="changeScore(1, -1)" color="primary" mat-raised-button>-</button>
+        <div class="ml-3 mr-3 scores">{{ getHoleScore(holeSelected, 1) }}</div>
+        <button class="score-btns" (click)="changeScore(1, 1)" color="primary" mat-raised-button>+</button>
+      </div>
+      <div class="result-rows" *ngIf="group.player2id">
+        <button class="score-btns" (click)="changeScore(2, -1)" color="primary" mat-raised-button>-</button>
+        <div class="ml-3 mr-3 scores">{{ getHoleScore(holeSelected, 2) }}</div>
+        <button class="score-btns" (click)="changeScore(2, 1)" color="primary" mat-raised-button>+</button>
+      </div>
+      <div class="result-rows" *ngIf="group.player3id">
+        <button class="score-btns" (click)="changeScore(3, -1)" color="primary" mat-raised-button>-</button>
+        <div class="ml-3 mr-3 scores">{{ getHoleScore(holeSelected, 3) }}</div>
+        <button class="score-btns" (click)="changeScore(3, 1)" color="primary" mat-raised-button>+</button>
+      </div>
+      <div class="result-rows" *ngIf="group.player4id" style="border-bottom:1px solid lightgray;">
+        <button class="score-btns" (click)="changeScore(4, -1)" color="primary" mat-raised-button>-</button>
+        <div class="ml-3 mr-3 scores">{{ getHoleScore(holeSelected, 4) }}</div>
+        <button class="score-btns" (click)="changeScore(4, 1)" color="primary" mat-raised-button>+</button>
+      </div>
+    </div>
+    <div class="col-4 pl-0 text-center">
+      <div class="col-titles">Match</div>
+      <div class="result-rows result-text" *ngIf="group.player1id">{{ getMatchResult(1) }}</div>
+      <div class="result-rows result-text" *ngIf="group.player2id">{{ getMatchResult(2) }}</div>
+      <div class="result-rows result-text" *ngIf="group.player3id">{{ getMatchResult(3) }}</div>
+      <div class="result-rows result-text" *ngIf="group.player4id" style="border-bottom:1px solid lightgray;">{{ getMatchResult(4) }}</div>
+    </div>
+    <div class="ml-2" style="color:#ff8c00;" *ngIf="unsavedChanges === true">* You have unsaved scores</div>
+
+  </div>
+
+  <button class="mx-auto d-block navBtns mt-2 mb-0" (click)="submitScores()" mat-raised-button color="primary">Submit Scores</button>
+
+</div>
+
+

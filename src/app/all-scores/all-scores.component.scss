@@ -1,0 +1,46 @@
+.group-header{
+    background-image: linear-gradient(to right, #18415e, #3277a8);
+    color:white;
+}
+.hole-cols{
+    background-color:lime;
+    color:navy;
+}
+.par-cols{
+    background-color:#ff8c00;
+    color:navy;
+}
+.table-container{
+    mix-width:100vw;
+    overflow-x: scroll;
+}
+
+.sticky {
+    position: absolute;
+    display: inline-block;
+    width:100px;
+    background-color:white;
+    border-right: 1px solid lightgray;
+}
+
+.table > tbody > tr > td:first-child {
+    position: absolute;
+    display: inline-block;
+    width:100px;
+    background-color:white;
+    border-right: 1px solid lightgray;
+}
+
+.table > tbody > tr > td:nth-child(2) {
+    padding-left: 100px !important;
+    width:130px;
+}
+.table > tbody > tr > td:nth-child(3) {
+    padding-left: 0px !important;
+}
+.stickCol th:nth-child(2) {
+    padding-left: 100px !important;
+}
+.stickCol th:nth-child(3) {
+    padding-left: 00px !important;
+}

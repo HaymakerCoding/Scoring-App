@@ -1,0 +1,17 @@
+.title-container{
+    background-color:#ff8c00;
+    color:navy;
+    font-size:0.8em;
+    padding:5px;
+    padding-left: 125px;
+    position: relative;
+}
+.title-container h1 {
+    font-size:20px;
+}
+.title-container h2 {
+    font-size:14px;
+}
+.league-logo{
+    width:100px; position:absolute; top:50%; left:10px; transform: translate(0, -50%);
+}
