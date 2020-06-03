@@ -51,7 +51,7 @@ export class NavComponent implements OnInit, OnDestroy {
   /**
    * Get the user's full name AND nickname either from memory or database
    */
-  getNames() {
+  getNames(): void {
     const userNames = this.authService.getUserNames();
     if (userNames) {
       this.userNickname = userNames.nickname;

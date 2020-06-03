@@ -30,6 +30,7 @@ import { SlammerScoringComponent } from './slammer-scoring/slammer-scoring.compo
 import { EnterScoresComponent } from './enter-scores/enter-scores.component';
 import { BottomNavComponent } from './bottom-nav/bottom-nav.component';
 import { AllScoresComponent } from './all-scores/all-scores.component';
+import { QuotablesComponent } from './quotables/quotables.component';
 
 @NgModule({
   declarations: [
@@ -41,7 +42,8 @@ import { AllScoresComponent } from './all-scores/all-scores.component';
     SlammerScoringComponent,
     EnterScoresComponent,
     BottomNavComponent,
-    AllScoresComponent
+    AllScoresComponent,
+    QuotablesComponent
   ],
   imports: [
     BrowserModule,
@@ -64,6 +66,7 @@ import { AllScoresComponent } from './all-scores/all-scores.component';
     MatButtonModule, MatIconModule, MatInputModule, MatSelectModule, MatSliderModule, MatToolbarModule,
   MatCardModule, MatSlideToggleModule, MatListModule, MatTableModule, MatExpansionModule, MatBottomSheetModule
   ],
+  entryComponents: [QuotablesComponent],
   providers: [],
   bootstrap: [AppComponent]
 })

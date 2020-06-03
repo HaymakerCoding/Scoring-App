@@ -1,6 +1,6 @@
 <section>
   <button *ngIf="showSubmit === false" class="mx-auto d-block navBtns" (click)="goToEnterScores()" mat-raised-button color="primary">Enter Group Scores</button>
-  <button class="mx-auto d-block mt-2 navBtns" mat-raised-button color="primary">Show Group Scores</button>
+  <button class="mx-auto d-block mt-2 navBtns" (click)="showQuotables()" mat-raised-button color="primary">Quotables/Notables</button>
   <button class="mx-auto d-block mt-2 navBtns" (click)="showAllScores()" mat-raised-button color="primary">Show All Scores</button>
   <button routerLink="/slammer-tour/pick-date" class="mx-auto d-block mt-2 navBtns" mat-raised-button color="primary">Change Event</button>
   <button class="mx-auto d-block mt-2 navBtns" (click)="logout()" mat-raised-button color="primary">Logout</button>

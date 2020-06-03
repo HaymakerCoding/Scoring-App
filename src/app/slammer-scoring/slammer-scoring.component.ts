@@ -4,7 +4,14 @@ import { ActivatedRoute } from '@angular/router';
 import { SlammerEventService } from '../services/slammer-event.service';
 import { SlammerEvent } from '../models/SlammerEvent';
 import { Par } from '../models/Par';
+import { BasicReg } from '../models/BasicReg';
+import { DoggieService } from '../services/doggie.service';
 
+/**
+ * Main component handling the soring specific for Slammer Tour events.
+ * 
+ * @author Malcolm Roy
+ */
 @Component({
   selector: 'app-slammer-scoring',
   templateUrl: './slammer-scoring.component.html',
@@ -17,18 +24,19 @@ export class SlammerScoringComponent implements OnInit, OnDestroy {
   event: SlammerEvent;
   loadingPercentage: number;
   pars: Par[];
-  currentView: View;
+  registered: BasicReg[];
+  doggieWinners: DoggieWinner[] = [];
 
   constructor(
     private activatedRoute: ActivatedRoute,
-    private eventService: SlammerEventService
+    private eventService: SlammerEventService,
+    private doggieService: DoggieService
   ) { }
 
   ngOnInit() {
     this.loadingPercentage = 0;
     this.loading = true;
     this.getId();
-    this.currentView = View.ALL;
   }
 
   ngOnDestroy() {
@@ -56,11 +64,31 @@ export class SlammerScoringComponent implements OnInit, OnDestroy {
       } else {
         console.error(response);
       }
-      this.getGroupNumbers(id);
+      this.getAllRegistered();
     }));
   }
 
-  getGroupNumbers(id) {
+  /**
+   * Get a list of all players registered in the event.
+   * Used for getting a full list of available players to assign as doggie winners
+   */
+  getAllRegistered() {
+    this.subscriptions.push(this.eventService.getAllRegistered(this.event.id.toString()).subscribe(response => {
+      if (response.status === 200) {
+        this.registered = response.payload;
+        this.loadingPercentage = 50;
+        this.getGroupNumbers(this.event.id.toString());
+      } else {
+        console.error(response);
+      }
+    }));
+  }
+
+  /**
+   * Get a list of group numbers for all groups in the event. This number just identifies the group
+   * @param id  Event ID, string for http request param
+   */
+  getGroupNumbers(id: string) {
     this.subscriptions.push(this.eventService.getGroupNumbers(id).subscribe(response => {
       if (response.status === 200) {
         this.loadingPercentage = 60;
@@ -78,9 +106,46 @@ export class SlammerScoringComponent implements OnInit, OnDestroy {
   getPars() {
     this.subscriptions.push(this.eventService.getPars(this.event.id.toString()).subscribe(response => {
       if (response.status === 200) {
-        this.loadingPercentage = 100;
+        this.loadingPercentage = 70;
         this.pars = response.payload;
+        this.initWinners();
       } else {
+        console.error(response);
+      }
+    }));
+  }
+
+  /**
+   * Initialize all the POSSIBLE Doggie winners. determined by holes where par is 3.
+   */
+  initWinners() {
+    this.pars.forEach(x => {
+      if (x.par <= 3) {
+        this.doggieWinners.push(new DoggieWinner(null, x.hole, null, null, null));
+      }
+    });
+    this.getDoggieWinners();
+  }
+
+  /**
+   * Get any winners set for the doggies
+   */
+  getDoggieWinners(){
+    this.subscriptions.push(this.doggieService.getDoggieWinners(this.event.id.toString()).subscribe(response => {
+      if (response.status === 200) {
+        const winnerRecords: any[] = response.payload;
+        winnerRecords.forEach(x => {
+          const winner = this.doggieWinners.find(y => y.hole === +x.hole);
+          if (winner) {
+            winner.name = x.nickname;
+            winner.distance = x.distance;
+            winner.slammerId = +x.player;
+            winner.id = +x.id;
+          }
+        });
+        this.loadingPercentage = 100;
+      } else {
+        alert('Error getting the doggie winners');
         console.error(response);
       }
     }));
@@ -91,4 +156,14 @@ export class SlammerScoringComponent implements OnInit, OnDestroy {
 enum View {
   ALL = 'all',
   GROUP = 'group'
+}
+
+export class DoggieWinner {
+  constructor(
+    public id: number,
+    public hole: number,
+    public name: string,
+    public distance: string,
+    public slammerId: number
+  ) {}
 }

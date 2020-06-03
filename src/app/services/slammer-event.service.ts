@@ -98,4 +98,20 @@ export class SlammerEventService {
       return response;
     }));
   }
+
+  /**
+   * Get all registrations for an event
+   * Return just basic info for listing
+   */
+  getAllRegistered(eventId: string) {
+    const params = new HttpParams().set('eventId', eventId);
+    const URL = 'https://clubeg.golf/common/api_REST/v1/slammer-tour/events/registrations/get-all/index.php';
+    return this.http.get<any>(URL, { params })
+      .pipe(map(response => {
+          return response;
+      })
+    );
+  }
+
+
 }

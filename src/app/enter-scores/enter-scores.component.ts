@@ -1,11 +1,14 @@
-import { Component, OnInit, Input, OnDestroy } from '@angular/core';
+import { Component, OnInit, Input, OnDestroy, TemplateRef } from '@angular/core';
 import { SlammerEvent } from '../models/SlammerEvent';
 import { Subscription } from 'rxjs';
 import { SlammerEventService } from '../services/slammer-event.service';
 import { Group } from '../models/Group';
 import { Par } from '../models/Par';
 import { GroupScoresService } from '../services/group-scores.service';
-import { MatSnackBar } from '@angular/material';
+import { MatSnackBar, MatDialogRef, MatDialog } from '@angular/material';
+import { BasicReg } from '../models/BasicReg';
+import { DoggieWinner } from '../slammer-scoring/slammer-scoring.component';
+import { DoggieService } from '../services/doggie.service';
 
 /**
  * Main component for entering scores for a golf event.
@@ -22,6 +25,9 @@ export class EnterScoresComponent implements OnInit, OnDestroy {
 
   @Input() event: SlammerEvent;
   @Input() pars: Par[];
+  @Input() registered: BasicReg[];
+  @Input() doggieWinners: DoggieWinner[];
+
   groupSelected: number;
   holes: number[];
   startHoleSelected: number;
@@ -32,19 +38,24 @@ export class EnterScoresComponent implements OnInit, OnDestroy {
   activePlayerId: number; // the slammer member id of the current active player selected to view match outcome for
   activePlayerNumber: number;
   unsavedChanges: boolean;
+  thisDoggieWinner: DoggieWinner; // the doggie winner for the current hole selected
+  dialogRef: MatDialogRef<any>
 
   constructor(
     private eventService: SlammerEventService,
     private groupScoreService: GroupScoresService,
-    private snackbar: MatSnackBar
+    private snackbar: MatSnackBar,
+    private doggieService: DoggieService,
+    private dialog: MatDialog
   ) { }
 
   ngOnInit() {
     this.unsavedChanges = false;
+    this.setHoles();
+    this.thisDoggieWinner = this.doggieWinners.find(x => x.hole === this.holeSelected);
     this.groupSelected = this.event.groupNumbers[0];
     this.groupScoreService.setEventId(this.event.id);
     this.initTrackUnsavedChanges();
-    this.setHoles();
     this.getGroup();
   }
 
@@ -66,6 +77,7 @@ export class EnterScoresComponent implements OnInit, OnDestroy {
    */
   onHoleChange() {
     this.loadDefaultHoleScores(this.holeSelected);
+    this.thisDoggieWinner = this.doggieWinners.find(x => x.hole === this.holeSelected);
   }
 
   /**
@@ -153,13 +165,6 @@ export class EnterScoresComponent implements OnInit, OnDestroy {
     }
     const hole = scores.find(x => x.hole === this.holeSelected);
     hole.score += value;
-    /*
-    if (hole) {
-      hole.score !== 0 ? hole.score += value : hole.score = (this.getPar(this.holeSelected) + value);
-    } else {
-      scores.push( { hole: this.holeSelected, score: this.getPar(this.holeSelected) + value});
-    }
-    */
     this.groupScoreService.setGroup(this.group);
     this.groupScoreService.setUnsavedScores(true);
   }
@@ -173,26 +178,23 @@ export class EnterScoresComponent implements OnInit, OnDestroy {
     switch (playerNum) {
       case 1: {
         const hole = this.group.player1scores.find(x => x.hole === holeNum);
-        return hole.score;
-        // return hole && hole.score !== 0 ? hole.score : this.pars.find(x => x.hole === holeNum).par;
+        return hole && hole.score ? hole.score : 0;
       }
       case 2: {
         const hole = this.group.player2scores.find(x => x.hole === holeNum);
-        return hole.score;
-        // return hole && hole.score !== 0 ? hole.score : this.pars.find(x => x.hole === holeNum).par;
+        return hole && hole.score ? hole.score : 0;
       }
       case 3: {
         const hole = this.group.player3scores.find(x => x.hole === holeNum);
-        return hole.score;
-        // return hole && hole.score !== 0 ? hole.score  : this.pars.find(x => x.hole === holeNum).par;
+        return hole && hole.score ? hole.score : 0;
       }
       case 4: {
         const hole = this.group.player4scores.find(x => x.hole === holeNum);
-        return hole.score;
-        // return hole && hole.score !== 0 ? hole.score  : this.pars.find(x => x.hole === holeNum).par;
+        return hole && hole.score ? hole.score : 0;
       }
       default: {
         console.error('Error in getting hole score, no matching player number');
+        return 0;
       }
     }
   }
@@ -201,10 +203,13 @@ export class EnterScoresComponent implements OnInit, OnDestroy {
    * Get the par for a specific hole
    * @param holeNum Hole number
    */
-  getPar(holeNum) {
+  getPar(holeNum: number):number {
     return this.pars.find(x => x.hole === holeNum).par;
   }
 
+  /**
+   * Setup an array for the 18 holes of a golf match
+   */
   setHoles() {
     this.holes = [];
     this.holeSelected = 1;
@@ -312,6 +317,93 @@ export class EnterScoresComponent implements OnInit, OnDestroy {
           this.holeSelected += 1;
         }
         this.onHoleChange();
+      } else {
+        console.error(response);
+      }
+    }));
+  }
+
+  /**
+   * Return the doggie winner set for a hole if there is one
+   */
+  getDoggieWinnerForHole(): DoggieWinner {
+    let winner = null;
+    this.doggieWinners.forEach(x => {
+      if (x.hole === this.holeSelected) {
+        winner = x;
+      }
+    });
+    return winner;
+  }
+
+  /**
+   * Show a dialog to allow update or add of a doggie winner
+   * If we have a winner already then it's an update else insert
+   * We control which button option is shown by a type text passed to dialog
+   * @param doggieDialog Doggie Winner obj
+   */
+  showDoggieDialog(doggieDialog: TemplateRef<any>) {
+    const doggieWinner: DoggieWinner = this.getDoggieWinnerForHole();
+    let type: string; // determine if api request will be update or insert based on data set
+    if (doggieWinner.id) {
+      // if this winner exists in the database then it will have a record id
+      type = 'update';
+    } else {
+      type = 'add'
+    }
+    this.dialogRef = this.dialog.open(doggieDialog, { data: { winner: doggieWinner, type } });
+  }
+
+  close() {
+    this.dialogRef.close();
+  }
+
+  /**
+   * Add a new doggie winner record for the hole selected
+   * @param slammerId Slammer Member ID
+   */
+  addDoggieWinner(doggieWinner: DoggieWinner) {
+    this.subscriptions.push(this.doggieService.add(this.event.id, doggieWinner.slammerId, doggieWinner.distance, this.holeSelected).subscribe(response => {
+      if (response.status === 201) {
+        this.snackbar.open('Doggie winner saved!', '', { duration: 1100 });
+        doggieWinner.id = response.payload;
+        this.close();
+      } else {
+        console.error(response);
+      }
+    }));
+  }
+
+  /**
+   * Update the current winner of doggie on hole selected
+   * @param slammerId Slammer Member ID
+   */
+  updateDoggieWinner(doggieWinner: DoggieWinner) {
+    this.subscriptions.push(this.doggieService.update(doggieWinner.id, doggieWinner.slammerId, doggieWinner.distance, this.event.id).subscribe(response => {
+      if (response.status === 200) {
+        this.snackbar.open('Doggie winner updated!', '', { duration: 1100 });
+        this.close();
+      } else {
+        console.error(response);
+      }
+    }));
+  }
+
+  /**
+   * Permanently remove a doggie winner for a hole from this event
+   * @param doggieWinner Doggie Winner obj
+   */
+  deleteDoggieWinner(doggieWinner: DoggieWinner) {
+    this.subscriptions.push(this.doggieService.delete(doggieWinner.id.toString(), this.event.id.toString()).subscribe(response => {
+      if (response.status === 200) {
+        this.snackbar.open('Doggie winner removed!', '', { duration: 1100 });
+        // keep the obj but only with hole set, remove player data from memory
+        const deletedWinner = this.doggieWinners.find( x => +x.id === +doggieWinner.id)
+        deletedWinner.id === null;
+        deletedWinner.name === null;
+        deletedWinner.distance === null;
+        deletedWinner.slammerId === null;
+        this.close();
       } else {
         console.error(response);
       }

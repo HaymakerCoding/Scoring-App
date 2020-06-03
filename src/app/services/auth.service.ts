@@ -11,17 +11,20 @@ export class AuthService {
 
   private token: string;
   private loggedIn = new Subject();
-  private userNames;
+  private userNames: UserNames;
 
   constructor(
     private http: HttpClient,
     private router: Router
   ) { }
 
-  getUserNames() {
+  getUserNames(): UserNames {
     return this.userNames;
   }
 
+  /**
+   * Get full name and nickname from the database for the current user
+   */
   getUserNamesFromDb() {
     const headers = new HttpHeaders().set('Authorization', 'Bearer ' + this.getToken());
     return this.http.get<any>('https://clubeg.golf/common/api_REST/v1/clubeg/members/get-member-nickname/index.php', { headers })
@@ -30,14 +33,14 @@ export class AuthService {
     }));
   }
 
-  getLoggedIn() {
+  getLoggedIn(): Subject<any> {
     return this.loggedIn;
   }
   setLoggedIn(loggedIn: boolean) {
     this.loggedIn.next(loggedIn);
   }
 
-  setToken(token) {
+  setToken(token: string) {
     this.token = token;
   }
 
@@ -46,7 +49,7 @@ export class AuthService {
    * If no token we need to use a refresh token to get a new access token.
    * If no access token then we send to login
    */
-  getToken() {
+  getToken(): string {
     return this.token;
   }
 
@@ -55,7 +58,7 @@ export class AuthService {
     return token ? token : null;
   }
 
-  setRefreshToken(token) {
+  setRefreshToken(token: string) {
     sessionStorage.setItem('egRefreshToken', token);
   }
 
@@ -83,7 +86,7 @@ export class AuthService {
    * Login request. Send to data to server for authentication.
    * @param form Format data
    */
-  login(form) {
+  login(form: any) {
     return this.http.post<any>('https://clubeg.golf/common/api_REST/v1/auth/login-new.php', {
       password: form.password,
       email: form.email
@@ -93,11 +96,20 @@ export class AuthService {
     }));
   }
 
+  /**
+   * Clear user data and client storage and logout
+   */
   logout() {
     this.setToken(null);
     this.setRefreshToken(null);
     this.setLoggedIn(false);
+    this.userNames = null;
     sessionStorage.clear();
     this.router.navigate(['/']);
   }
+}
+
+interface UserNames {
+    fullName: string,
+    nickname: string
 }

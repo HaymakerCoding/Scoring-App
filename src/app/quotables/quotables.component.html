@@ -1,0 +1,60 @@
+<h3 class="text-center">Enter Quotables/Notables</h3>
+<mat-tab-group>
+    <mat-tab label="New Quotable">
+        <br>
+        <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Player</mat-label>
+            <mat-select [(value)]="userId" #quotablePlayerSelect>
+                <mat-option [value]="reg.slammerId" *ngFor="let reg of registered">{{ reg.fullName }}</mat-option>
+            </mat-select>
+        </mat-form-field>
+        <br>
+        <mat-form-field appearance="outline">
+            <mat-label>Text</mat-label>
+            <textarea #quotableText matInput cdkTextareaAutosize cdkAutosizeMinRows="8"></textarea>
+        </mat-form-field>
+        <br>
+        <button mat-raised-button color="primary" (click)="saveQuotable(quotablePlayerSelect.value, quotableText.value, 'quotable')">Save</button>
+        <button mat-raised-button class="ml-2" (click)="close()" color="primary">Cancel</button>
+        <br>
+    </mat-tab>
+    <mat-tab label="New Notable">
+        <br>
+        <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Player</mat-label>
+            <mat-select #notablePlayerSelect>
+                <mat-option [value]="reg.slammerId" *ngFor="let reg of registered">{{ reg.fullName }}</mat-option>
+            </mat-select>
+        </mat-form-field>
+        <br>
+        <mat-form-field appearance="outline">
+            <mat-label>Text</mat-label>
+            <textarea #notableText matInput cdkTextareaAutosize cdkAutosizeMinRows="8"></textarea>
+        </mat-form-field>
+        <br>
+        <button mat-raised-button color="primary" (click)="saveQuotable(notablePlayerSelect.value, notableText.value, 'notable')">Save</button>
+        <button mat-raised-button class="ml-2" (click)="close()" color="primary">Cancel</button>
+        <br>
+    </mat-tab>
+    <mat-tab label="View All">
+        <div style="min-height:600px;">
+            <div *ngIf="quotesLoading === false">
+                <br>
+                <h5 class="quote-title">Quotables</h5>
+                <mat-list>
+                    <mat-list-item *ngFor="let quote of allQuotes.quotables">
+                        {{ quote.Quote }}
+                    </mat-list-item>
+                </mat-list>
+                <hr>
+                <h5 class="quote-title">Notables</h5>
+                <mat-list>
+                    <mat-list-item *ngFor="let quote of allQuotes.notables">
+                        {{ quote.Quote }}
+                    </mat-list-item>
+                </mat-list>
+            </div>
+        </div>
+    </mat-tab>
+</mat-tab-group>
+<br>

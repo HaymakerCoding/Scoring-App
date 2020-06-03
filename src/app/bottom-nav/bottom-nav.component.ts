@@ -1,9 +1,16 @@
 import { Component, OnInit, OnDestroy, Input } from '@angular/core';
 import { AuthService } from '../services/auth.service';
-import { GroupScoresService } from '../services/group-scores.service';
 import { Subscription } from 'rxjs';
 import { Router } from '@angular/router';
+import { MatBottomSheet, MatBottomSheetRef } from '@angular/material';
+import { QuotablesComponent } from '../quotables/quotables.component';
+import { BasicReg } from '../models/BasicReg';
 
+/**
+ * Bottom Nav section offers some user options meant to be generic to all scoring routines
+ * 
+ * @author Malcolm Roy
+ */
 @Component({
   selector: 'app-bottom-nav',
   templateUrl: './bottom-nav.component.html',
@@ -11,14 +18,16 @@ import { Router } from '@angular/router';
 })
 export class BottomNavComponent implements OnInit, OnDestroy {
 
+  @Input() registered: BasicReg[];
   @Input() showSubmit: boolean;
   @Input() eventId: number;
   subscriptions: Subscription[] = [];
+  bottomSheetRef: MatBottomSheetRef;
 
   constructor(
     private authService: AuthService,
-    private groupScoreService: GroupScoresService,
-    private router: Router
+    private router: Router,
+    private bottomSheet: MatBottomSheet
   ) { }
 
   ngOnInit() {
@@ -39,6 +48,10 @@ export class BottomNavComponent implements OnInit, OnDestroy {
 
   goToEnterScores() {
     this.router.navigate(['/slammer-tour/scoring/' + this.eventId]);
+  }
+
+  showQuotables() {
+      this.bottomSheetRef = this.bottomSheet.open(QuotablesComponent, { data: {registered: this.registered, eventId: this.eventId } });
   }
 
 }

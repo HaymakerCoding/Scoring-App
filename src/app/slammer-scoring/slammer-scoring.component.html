@@ -12,8 +12,8 @@
       <img class="league-logo" src="./assets/slammer-logo.png">
     </section>
 
-    <app-enter-scores *ngIf="this.currentView === 'all'" [event]="event" [pars]="pars"></app-enter-scores>
-    <app-bottom-nav [showSubmit]="true" [eventId]="event.id"></app-bottom-nav>
+    <app-enter-scores [doggieWinners]="doggieWinners" [registered]="registered" [event]="event" [pars]="pars"></app-enter-scores>
+    <app-bottom-nav [showSubmit]="true" [registered]="registered" [eventId]="event.id"></app-bottom-nav>
 
   </div>
 

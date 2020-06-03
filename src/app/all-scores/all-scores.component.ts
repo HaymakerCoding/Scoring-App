@@ -76,7 +76,7 @@ export class AllScoresComponent implements OnInit, OnDestroy {
    * Get the pars for the course
    */
   getPars() {
-    this.subscriptions.push(this.eventService.getPars(this.event.courseId.toString()).subscribe(response => {
+    this.subscriptions.push(this.eventService.getPars(this.event.id.toString()).subscribe(response => {
       if (response.status === 200) {
         this.loadingPercentage = 60;
         this.pars = response.payload;
