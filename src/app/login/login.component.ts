@@ -47,7 +47,7 @@ export class LoginComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   ngAfterViewInit() {
-    this.dialogRef = this.dialog.open(this.loginDialog, { minWidth: 300 });
+    this.dialogRef = this.dialog.open(this.loginDialog, { minWidth: 300, disableClose: true });
   }
 
   close() {

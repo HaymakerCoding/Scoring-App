@@ -28,7 +28,7 @@ export class QuoteService {
 
   add(eventId: number, playerId, type, text, slammer) {
     const headers = this.authService.getAuthHeader();
-    const URL = 'https://clubeg.golf/common/api_REST/v1/slammer-tour/quotes/add/index.php';
+    const URL = 'https://clubeg.golf/common/api_REST/v1/slammer-tour/quotes/user-add/index.php';
     return this.http.post<any>(URL, { eventId, playerId, type, text, slammer }, { headers })
       .pipe(map(response => {
           return response;

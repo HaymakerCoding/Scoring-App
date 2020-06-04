@@ -26,7 +26,7 @@ export class QuotablesComponent implements OnInit, OnDestroy {
   eventId: number;
   userNames: UserNames;
   userId: number;
-  quotesLoading: boolean;
+  loading: boolean;
   allQuotes: AllQuotes;
   
   constructor(
@@ -38,9 +38,9 @@ export class QuotablesComponent implements OnInit, OnDestroy {
   ) {}
 
   ngOnInit() {
+    this.loading = true;
     this.registered = this.data.registered;
     this.eventId = this.data.eventId;
-    this.getQuotes();
     this.getUserNames();
   }
 
@@ -54,13 +54,13 @@ export class QuotablesComponent implements OnInit, OnDestroy {
       this.authService.getUserNamesFromDb().subscribe(response => {
         if (response.status === 200) {
           this.userNames = response.payload;
-          this.getUserId();
+          this.setUserId();
         } else {
           console.error(response);
         }
       });
     } else {
-      this.getUserId();
+      this.setUserId();
     }
   }
 
@@ -68,9 +68,10 @@ export class QuotablesComponent implements OnInit, OnDestroy {
    * Attempt to find the user by their nickname, not the best but this is not too important, just to default the selector to user
    * If we can match their nicknames then set the user id here
    */
-  getUserId() {
+  setUserId() {
     const user: BasicReg = this.registered.find(x => x.nickname === this.userNames.nickname);
-    return user ? user.slammerId : null;
+    this.userId = user ? user.slammerId : null;
+    this.loading = false;
   }
 
   ngOnDestroy() {
@@ -102,18 +103,6 @@ export class QuotablesComponent implements OnInit, OnDestroy {
       if (response.status === 201) {
         this.snackbar.open(msg, '', { duration: 1100 });
         this.close();
-      } else {
-        console.error(response);
-      }
-    }));
-  }
-
-  getQuotes() {
-    this.quotesLoading = true;
-    this.subscriptions.push(this.quoteService.getAllQuotes(this.eventId).subscribe(response => {
-      if (response.status === 200) {
-        this.allQuotes = response.payload;
-        this.quotesLoading = false;
       } else {
         console.error(response);
       }
