@@ -1,5 +1,6 @@
 import { Component, OnInit, Inject, OnDestroy } from '@angular/core';
-import { MAT_BOTTOM_SHEET_DATA, MatBottomSheetRef, MatSnackBar } from '@angular/material';
+import { MAT_BOTTOM_SHEET_DATA, MatBottomSheetRef } from '@angular/material/bottom-sheet';
+import { MatSnackBar } from '@angular/material/snack-bar';
 import { BasicReg } from '../models/BasicReg';
 import { Subscription } from 'rxjs';
 import { QuoteService } from '../services/quote.service';

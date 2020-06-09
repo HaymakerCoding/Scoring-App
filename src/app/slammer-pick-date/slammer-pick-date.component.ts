@@ -1,5 +1,6 @@
 import { Component, OnInit, AfterViewInit, ViewChild, ElementRef } from '@angular/core';
-import { MatDatepicker, MatSnackBar } from '@angular/material';
+import { MatDatepicker } from '@angular/material/datepicker';
+import { MatSnackBar } from '@angular/material/snack-bar';
 import { Subscription } from 'rxjs';
 import { SlammerEventService } from '../services/slammer-event.service';
 import { EventBasic } from '../models/EventBasic';
