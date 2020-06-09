@@ -19,7 +19,7 @@ import { Router } from '@angular/router';
 })
 export class SlammerPickDateComponent implements OnInit {
 
-  @ViewChild('pickerBtn', { static: false }) pickerBtn: ElementRef;
+  @ViewChild('pickerBtn') pickerBtn: ElementRef;
   subscriptions: Subscription[] = [];
   loading: boolean;
   todayEvents: EventBasic[] = [];

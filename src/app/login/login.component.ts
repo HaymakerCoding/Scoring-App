@@ -12,7 +12,7 @@ import { AuthService } from '../services/auth.service';
 })
 export class LoginComponent implements OnInit, OnDestroy, AfterViewInit {
 
-  @ViewChild('loginDialog', { static: false }) loginDialog: TemplateRef<any>;
+  @ViewChild('loginDialog') loginDialog: TemplateRef<any>;
   form: FormGroup;
   hide: boolean;
   emailError: string;
