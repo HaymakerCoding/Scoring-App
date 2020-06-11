@@ -78,6 +78,7 @@ export class EnterScoresComponent implements OnInit, OnDestroy {
    */
   onHoleChange() {
     this.loadDefaultHoleScores(this.holeSelected);
+    this.groupScoreService.setHoleOn(this.holeSelected);
     this.thisDoggieWinner = this.doggieWinners.find(x => x.hole === this.holeSelected);
   }
 
@@ -213,7 +214,11 @@ export class EnterScoresComponent implements OnInit, OnDestroy {
    */
   setHoles() {
     this.holes = [];
-    this.holeSelected = 1;
+    if (this.groupScoreService.getHoleOn()) {
+      this.holeSelected = this.groupScoreService.getHoleOn();
+    } else {
+      this.holeSelected = 1;
+    }
     for (let x = 1; x < 19; x++) {
       this.holes.push(x);
     }
@@ -316,6 +321,7 @@ export class EnterScoresComponent implements OnInit, OnDestroy {
         // Go to next hole
         if (this.holeSelected < this.holes[this.holes.length - 1]) {
           this.holeSelected += 1;
+          this.groupScoreService.setHoleOn(this.holeSelected);
         }
         this.onHoleChange();
       } else {

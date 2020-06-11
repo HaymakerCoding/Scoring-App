@@ -13,6 +13,7 @@ export class GroupScoresService {
   private unsavedScores = new Subject<boolean>();
   private group: Group;
   private eventId: number;
+  private holeOn: number;
 
   constructor(
     private http: HttpClient,
@@ -23,6 +24,14 @@ export class GroupScoresService {
 
   setUnsavedScores(unsavedScores: boolean) {
     this.unsavedScores.next(unsavedScores);
+  }
+
+  setHoleOn(hole: number) {
+    this.holeOn = hole;
+  }
+
+  getHoleOn() {
+    return this.holeOn;
   }
 
   hasUnsavedScores() {

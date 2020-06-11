@@ -29,9 +29,17 @@ export class DoggieService {
     );
   }
 
-  add(eventId: number, slammerId: number, distance: any, hole: number) {
+  /**
+   * Add a new doggie winner for a hole of golf. 1 winner per hole allowed. Hole must be a par 3.
+   * Auth here is simply to be logged in, removed specific user role auth
+   * @param eventId Event PK
+   * @param slammerId Slammer Member ID
+   * @param distance distance to hole
+   * @param hole Hole number
+   */
+  add(eventId: number, slammerId: number, distance: number, hole: number) {
     const headers = this.authService.getAuthHeader();
-    const URL = 'https://clubeg.golf/common/api_REST/v1/slammer-tour/events/doggie-winners/add/index.php';
+    const URL = 'https://clubeg.golf/common/api_REST/v1/slammer-tour/events/doggie-winners/add-public/index.php';
     return this.http.post<any>(URL, { eventId, slammerId, distance, hole }, { headers })
       .pipe(map(response => {
           return response;
@@ -39,9 +47,17 @@ export class DoggieService {
     );
   }
 
-  update(id, slammerId, distance, eventId) {
+  /**
+   * Update a doggie winner record by its recorde ID, on a certain hole.
+   * Changed this to a public anyone can logged in can do it
+   * @param id record PK
+   * @param slammerId Slammer Member ID
+   * @param distance distance to hole
+   * @param eventId Event PK
+   */
+  update(id: number, slammerId: number, distance: number, eventId: number) {
     const headers = this.authService.getAuthHeader();
-    const URL = 'https://clubeg.golf/common/api_REST/v1/slammer-tour/events/doggie-winners/update/index.php';
+    const URL = 'https://clubeg.golf/common/api_REST/v1/slammer-tour/events/doggie-winners/update-public/index.php';
     return this.http.patch<any>(URL, { id, slammerId, distance, eventId }, { headers })
       .pipe(map(response => {
           return response;

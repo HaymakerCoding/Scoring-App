@@ -74,10 +74,11 @@
 
   </div>
 
+  <button class="mx-auto d-block navBtns mt-2 mb-0" (click)="submitScores()" mat-raised-button color="primary">Submit Scores</button>
   <div *ngIf="getPar(holeSelected) === 3" class="mt-2">
     <button class="mx-auto d-block navBtns mt-2 mb-0" (click)="showDoggieDialog(doggieDialog)" mat-raised-button color="primary">Add/Change Doggie Winner</button>
   </div>
-  <button class="mx-auto d-block navBtns mt-2 mb-0" (click)="submitScores()" mat-raised-button color="primary">Submit Scores</button>
+  
 
 </div>
 

@@ -163,7 +163,7 @@ export class DoggieWinner {
     public id: number,
     public hole: number,
     public name: string,
-    public distance: string,
+    public distance: number,
     public slammerId: number
   ) {}
 }
