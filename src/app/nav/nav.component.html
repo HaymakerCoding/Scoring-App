@@ -1,5 +1,7 @@
 <mat-toolbar style="background-image:url('https://clubeg.golf/background.jpg'); z-index:2; height:60px;background-position: bottom;">
-  <span class="title">ClubEG Scoring</span>
+  <img src="../assets/logo.png" style="width:65px;" alt="ClubEG">
+  <span class="title fun-text ml-3" style="font-size:18px;">Scoring</span>
+  <button mat-raised-button color="primary" class="ml-2" (click)="onUserInstall()" *ngIf="deferredPrompt">Install</button>
   <span class="filler"></span>
   <mat-icon class="mr-2" (click)="toggleUserMenu()" *ngIf="loggedIn === true">account_box</mat-icon>
   <div class="user-name" *ngIf="loggedIn === true && userFullName">{{ userFullName }}</div>

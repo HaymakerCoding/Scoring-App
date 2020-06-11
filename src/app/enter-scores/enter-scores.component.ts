@@ -411,6 +411,8 @@ export class EnterScoresComponent implements OnInit, OnDestroy {
         deletedWinner.distance === null;
         deletedWinner.slammerId === null;
         this.close();
+      } else if (response.status === 403) {
+        this.snackbar.open('Sorry, delete is reserved to Coordinator or Admin authorization', 'dismiss');
       } else {
         console.error(response);
       }

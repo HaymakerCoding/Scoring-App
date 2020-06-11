@@ -14,6 +14,7 @@ export class NavComponent implements OnInit, OnDestroy {
   userFullName: string;
   subscriptions: Subscription[] = [];
   showUserMenu: boolean;
+  deferredPrompt: any;
 
   constructor(
     private authService: AuthService
@@ -21,6 +22,7 @@ export class NavComponent implements OnInit, OnDestroy {
 
   ngOnInit() {
     this.showUserMenu = false;
+    this.stashInstall()
     this.trackLoggedIn();
   }
 
@@ -38,6 +40,25 @@ export class NavComponent implements OnInit, OnDestroy {
         this.getNames();
       }
     }));
+  }
+
+  /**
+   * Stash prompt to install PWA.
+   * This is triggered by browser and not all browsers support.
+   * IF this is stashed we can offer user a button and then give them the prompt allowing 'install' of this app
+   * Currently this is not supported on iOS so will not work on iPhone of in safari, other browsers on PC and android phones should be fine
+   */
+  stashInstall() {
+    if (window.matchMedia('(display-mode: browser)').matches) {
+      window.addEventListener('beforeinstallprompt', (e) => {
+        e.preventDefault();
+        this.deferredPrompt = e;
+      });
+    }
+  }
+
+  onUserInstall(){
+    this.deferredPrompt.prompt();
   }
 
   toggleUserMenu() {

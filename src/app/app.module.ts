@@ -41,6 +41,8 @@ import { EnterScoresComponent } from './enter-scores/enter-scores.component';
 import { BottomNavComponent } from './bottom-nav/bottom-nav.component';
 import { AllScoresComponent } from './all-scores/all-scores.component';
 import { QuotablesComponent } from './quotables/quotables.component';
+import { ServiceWorkerModule } from '@angular/service-worker';
+import { environment } from '../environments/environment';
 
 @NgModule({
   declarations: [
@@ -74,7 +76,7 @@ import { QuotablesComponent } from './quotables/quotables.component';
     MatDialogModule,
     MatProgressBarModule,
     MatButtonModule, MatIconModule, MatInputModule, MatSelectModule, MatSliderModule, MatToolbarModule,
-  MatCardModule, MatSlideToggleModule, MatListModule, MatTableModule, MatExpansionModule, MatBottomSheetModule
+  MatCardModule, MatSlideToggleModule, MatListModule, MatTableModule, MatExpansionModule, MatBottomSheetModule, ServiceWorkerModule.register('ngsw-worker.js', { enabled: environment.production })
   ],
   entryComponents: [QuotablesComponent],
   providers: [],
