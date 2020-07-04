@@ -54,12 +54,12 @@ export class AuthService {
   }
 
   getRefreshToken() {
-    const token = sessionStorage.getItem('egRefreshToken');
+    const token = localStorage.getItem('egRefreshToken');
     return token ? token : null;
   }
 
   setRefreshToken(token: string) {
-    sessionStorage.setItem('egRefreshToken', token);
+    localStorage.setItem('egRefreshToken', token);
   }
 
   /**
@@ -104,7 +104,7 @@ export class AuthService {
     this.setRefreshToken(null);
     this.setLoggedIn(false);
     this.userNames = null;
-    sessionStorage.clear();
+    localStorage.clear();
     this.router.navigate(['/']);
   }
 }

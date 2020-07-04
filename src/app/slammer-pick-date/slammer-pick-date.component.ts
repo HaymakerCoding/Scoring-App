@@ -1,4 +1,4 @@
-import { Component, OnInit, AfterViewInit, ViewChild, ElementRef } from '@angular/core';
+import { Component, OnInit, AfterViewInit, ViewChild, ElementRef, OnDestroy } from '@angular/core';
 import { MatDatepicker } from '@angular/material/datepicker';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { Subscription } from 'rxjs';
@@ -18,13 +18,16 @@ import { Router } from '@angular/router';
   templateUrl: './slammer-pick-date.component.html',
   styleUrls: ['./slammer-pick-date.component.scss']
 })
-export class SlammerPickDateComponent implements OnInit {
+export class SlammerPickDateComponent implements OnInit, OnDestroy {
 
   @ViewChild('pickerBtn') pickerBtn: ElementRef;
   subscriptions: Subscription[] = [];
-  loading: boolean;
-  todayEvents: EventBasic[] = [];
-  tomorrowEvents: EventBasic[] = [];
+  loadingPercent: number;
+  todaySlammerEvents: EventBasic[] = [];
+  tomorrowSlammerEvents: EventBasic[] = [];
+  todayEvents: EventBasic[];
+  tomorrowEvents: EventBasic[];
+
   today: Date;
   tomorrow: Date;
 
@@ -35,27 +38,23 @@ export class SlammerPickDateComponent implements OnInit {
   ) { }
 
   ngOnInit() {
-    this.loading = true;
+    this.loadingPercent = 0;
     this.today = new Date(new Date().toDateString());
     this.tomorrow = new Date(new Date().toDateString());
     this.tomorrow.setDate(this.tomorrow.getDate() + 1); // DEBUG line to change dates
-    this.getTodayEvents();
-
+    this.getSlammerEvents(this.today, 'today');
+    this.getSlammerEvents(this.tomorrow, 'tomorrow');
+    this.getNonSlammerEvents(this.today, 'today');
+    this.getNonSlammerEvents(this.tomorrow, 'tomorrow');
   }
 
-  /**
-   * When a new date is selected. Format the date from Date Picker then fetch events for that date
-   * @param date Date Obj from picker
-   */
-  /* DEPRICATED
-  onDaySelected(date) {
-    const year = date._i.year;
-    const month = date._i.month + 1;
-    const day = date._i.date;
-    const mysqlDate = this.getMysqlDate(year, month, day);
-    this.getDayEvents(mysqlDate);
+  ngOnDestroy() {
+    this.subscriptions.forEach(sub => sub.unsubscribe());
   }
-  *
+
+  setLoadingPercent(percent: number) {
+    this.loadingPercent += percent;
+  }
 
   /**
    * Return a MySQL formatted date string
@@ -70,43 +69,49 @@ export class SlammerPickDateComponent implements OnInit {
     return year + '-' + month + '-' + day;
   }
 
-  getDate(offset) {
-
-  }
-
   /**
    * Get the events for that day from the database
    * @param date MySQL date format
    */
-  getTodayEvents() {
-    const date = this.getMysqlDate(this.today);
-    this.subscriptions.push(this.slammerEventService.getEventsForDay(date.toString()).subscribe(response => {
+  getSlammerEvents(date, day: string) {
+    const mysqlDate = this.getMysqlDate(date);
+    this.subscriptions.push(this.slammerEventService.getEventsForDay(mysqlDate.toString()).subscribe(response => {
       if (response.status === 200) {
-        this.todayEvents = response.payload;
+        if (day === 'today') {
+          this.todaySlammerEvents = response.payload;
+        } else {
+          this.todaySlammerEvents = response.payload;
+        }
+        this.setLoadingPercent(25);
       } else {
         console.error(response);
       }
-      this.getTomorrowEvents();
     }));
   }
 
-  getTomorrowEvents() {
-    const date = this.getMysqlDate(this.tomorrow);
-    this.subscriptions.push(this.slammerEventService.getEventsForDay(date.toString()).subscribe(response => {
+  getNonSlammerEvents(date, day: string) {
+    const mysqlDate = this.getMysqlDate(date);
+    this.subscriptions.push(this.slammerEventService.getNonSlammerEvents(mysqlDate).subscribe(response => {
       if (response.status === 200) {
-        this.tomorrowEvents = response.payload;
+        if (day === 'today') {
+          this.todayEvents = response.payload;
+        } else {
+          this.tomorrowEvents = response.payload;
+        }
+        console.log(response);
+        this.setLoadingPercent(25);
       } else {
         console.error(response);
       }
-      this.loading = false;
     }));
+    
   }
 
   /**
-   * User selected event, allow enter scores if day of event
+   * User selected a Slammer Tour event, allow enter scores if day of event
    * @param event Event
    */
-  onEventSelected(event: EventBasic) {
+  onSlammerEventSelected(event: EventBasic) {
     // turn mysql date into a javasript Date
     const dateParts = event.date.split('-');
     const eventDate = new Date(dateParts[0], dateParts[1] - 1, dateParts[2].substr(0, 2));
@@ -115,6 +120,31 @@ export class SlammerPickDateComponent implements OnInit {
       this.snackbar.open('Sorry scoring is only allowed on the day of the event.', 'Got it!');
     } else {
       this.router.navigate(['/slammer-tour/scoring/' + event.id]);
+    }
+  }
+
+  /**
+   * User selected a tournament or other event. go to specific routing for the specific tournament
+   * @param event 
+   */
+  onEventSelected(event: EventBasic) {
+    // turn mysql date into a javasript Date
+    const dateParts = event.eventDate.split('-');
+    const eventDate = new Date(dateParts[0], dateParts[1] - 1, dateParts[2].substr(0, 2));
+    // compare dates to ensure scoring is done on the day of event
+    if (eventDate < this.today || eventDate > this.today) {
+      this.snackbar.open('Sorry scoring is only allowed on the day of the event.', 'Got it!');
+    } else {
+      switch(+event.eventTypeId) {
+        case 10: {
+          //Commish's Cup
+          alert('Commishs Cup!');
+        }
+        default: {
+          this.snackbar.open('Sorry scoring not available for this event type yet.', 'Got it!');
+        }
+      }
+      
     }
   }
 
