@@ -17,15 +17,16 @@ export class SlammerEventService {
   ) { }
 
   /**
-   * Get all events for a day, just basic data for listing.
+   * Get upcomming events for slammer tour, up to a max number
    * FOR the specific user logged in - any events they are grouped in
    * User needs to be logged in as we use token to identify the user
    * @param date Date to fetch events for, in mysql format
    */
-  getEventsForDay(date: string) {
+  getEvents(date: string, maxNum: string) {
     const headers = this.authService.getAuthHeader();
-    return this.http.post<any>('https://clubeg.golf/common/api_REST/v1/slammer-tour/events/get-for-day-and-member/index.php',
-    { date }, { headers })
+    const params = new HttpParams().set('date', date).set('maxNum', maxNum);
+    return this.http.get<any>('https://clubeg.golf/common/api_REST/v1/slammer-tour/events/get-for-day-and-member/index.php',
+    { params, headers })
     .pipe(map(response => {
       return response;
     }));
@@ -114,13 +115,14 @@ export class SlammerEventService {
   }
 
   /**
-   * Ideally we will make all Events generic, but for now som are slammer specific. Here we grab the events that are generic.
+   * Ideally we will make all Events generic, but for now some are slammer specific. Here we grab the events that are generic.
    * Using the Slammer Event service as this service should be refactored eventually to just be an event service
+   * Get upcoming events from the date passed in. Maxed to the number max number provided.
    */
-  getNonSlammerEvents(date: string){
+  getNonSlammerEvents(date: string, maxNum: string){
     const headers = this.authService.getAuthHeader();
-    const params = new HttpParams().set('date', date);
-    return this.http.get<any>('https://clubeg.golf/common/api_REST/v1/clubeg/event/get-by-date/index.php',
+    const params = new HttpParams().set('date', date).set('maxNum', maxNum);
+    return this.http.get<any>('https://clubeg.golf/common/api_REST/v1/clubeg/event/get-upcoming-max/index.php',
     { params, headers })
     .pipe(map(response => {
       return response;

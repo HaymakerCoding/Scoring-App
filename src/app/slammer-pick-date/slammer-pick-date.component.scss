@@ -3,3 +3,20 @@
     margin-top: 15px;
     font-size:20px;
 }
+.eventBoxes{
+    cursor: pointer;
+    border:2px solid lightgray;
+    border-radius:6px;
+    padding:5px;
+}
+.dates{
+    color:#717885; font-weight: 400;
+}
+.eventBoxes:hover{
+    background: rgb(115,114,121);
+    background: radial-gradient(circle, rgba(115,114,121,1) 0%, rgba(49,49,54,1) 68%, rgba(43,44,47,1) 100%);
+    color:white;
+}
+.eventBoxes:hover > .dates{
+    color:lightgray!important;
+}

@@ -1,4 +1,3 @@
-import { NumberSymbol } from '@angular/common';
 
 /**
  * Basic Event Data for a list

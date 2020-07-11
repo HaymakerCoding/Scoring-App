@@ -1,5 +1,4 @@
-import { Component, OnInit, AfterViewInit, ViewChild, ElementRef, OnDestroy } from '@angular/core';
-import { MatDatepicker } from '@angular/material/datepicker';
+import { Component, OnInit, ViewChild, ElementRef, OnDestroy } from '@angular/core';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { Subscription } from 'rxjs';
 import { SlammerEventService } from '../services/slammer-event.service';
@@ -23,11 +22,8 @@ export class SlammerPickDateComponent implements OnInit, OnDestroy {
   @ViewChild('pickerBtn') pickerBtn: ElementRef;
   subscriptions: Subscription[] = [];
   loadingPercent: number;
-  todaySlammerEvents: EventBasic[] = [];
-  tomorrowSlammerEvents: EventBasic[] = [];
-  todayEvents: EventBasic[];
-  tomorrowEvents: EventBasic[];
-
+  slammerEvents: EventBasic[] = [];
+  events: EventBasic[];
   today: Date;
   tomorrow: Date;
 
@@ -42,10 +38,7 @@ export class SlammerPickDateComponent implements OnInit, OnDestroy {
     this.today = new Date(new Date().toDateString());
     this.tomorrow = new Date(new Date().toDateString());
     this.tomorrow.setDate(this.tomorrow.getDate() + 1); // DEBUG line to change dates
-    this.getSlammerEvents(this.today, 'today');
-    this.getSlammerEvents(this.tomorrow, 'tomorrow');
-    this.getNonSlammerEvents(this.today, 'today');
-    this.getNonSlammerEvents(this.tomorrow, 'tomorrow');
+    this.getSlammerEvents(this.today);
   }
 
   ngOnDestroy() {
@@ -71,35 +64,26 @@ export class SlammerPickDateComponent implements OnInit, OnDestroy {
 
   /**
    * Get the events for that day from the database
-   * @param date MySQL date format
+   * @param date Javascript Date ojb
    */
-  getSlammerEvents(date, day: string) {
+  getSlammerEvents(date: Date) {
     const mysqlDate = this.getMysqlDate(date);
-    this.subscriptions.push(this.slammerEventService.getEventsForDay(mysqlDate.toString()).subscribe(response => {
+    this.subscriptions.push(this.slammerEventService.getEvents(mysqlDate, '14').subscribe(response => {
       if (response.status === 200) {
-        if (day === 'today') {
-          this.todaySlammerEvents = response.payload;
-        } else {
-          this.todaySlammerEvents = response.payload;
-        }
-        this.setLoadingPercent(25);
+        this.slammerEvents = response.payload;
+        this.getNonSlammerEvents(date);
       } else {
         console.error(response);
       }
     }));
   }
 
-  getNonSlammerEvents(date, day: string) {
+  getNonSlammerEvents(date: Date) {
     const mysqlDate = this.getMysqlDate(date);
-    this.subscriptions.push(this.slammerEventService.getNonSlammerEvents(mysqlDate).subscribe(response => {
+    this.subscriptions.push(this.slammerEventService.getNonSlammerEvents(mysqlDate, '14').subscribe(response => {
       if (response.status === 200) {
-        if (day === 'today') {
-          this.todayEvents = response.payload;
-        } else {
-          this.tomorrowEvents = response.payload;
-        }
-        console.log(response);
-        this.setLoadingPercent(25);
+        this.events = response.payload;
+        this.setLoadingPercent(100);
       } else {
         console.error(response);
       }
