@@ -1,0 +1,29 @@
+<table class="table table-sm">
+    <thead>
+        <tr class="dark-bkg" *ngIf="scorecard.section2">
+            <th>Hole</th>
+            <th *ngFor="let hole of scorecard.section1.holes">{{ hole.no }}</th>
+            <th *ngFor="let hole of scorecard.section2.holes">{{ hole.no }}</th>
+        </tr>
+        <tr class="light-bkg" *ngIf="scorecard.section2">
+            <th>Par</th>
+            <th *ngFor="let hole of scorecard.section1.holes">{{ hole.par }}</th>
+            <th *ngFor="let hole of scorecard.section2.holes">{{ hole.par }}</th>
+        </tr>
+        <tr class="dark-bkg" *ngIf="!scorecard.section2">
+            <th>Hole</th>
+            <th *ngFor="let hole of scorecard.section1.holes">{{ hole.no }}</th>
+        </tr>
+        <tr class="light-bkg" *ngIf="!scorecard.section2">
+            <th>Par</th>
+            <th *ngFor="let hole of scorecard.section1.holes">{{ hole.par }}</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr *ngFor="let participant of group.groupParticipants">
+            <td>{{ participant.fullName }}</td>
+            <td *ngFor="let hole of scorecard.section1.holes">{{ getHoleScore(participant, hole) }}</td>
+            <td *ngFor="let hole of scorecard.section2.holes">{{ getHoleScore(participant, hole) }}</td>
+        </tr>
+    </tbody>
+</table>

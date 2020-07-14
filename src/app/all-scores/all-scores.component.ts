@@ -4,8 +4,7 @@ import { SlammerEventService } from '../services/slammer-event.service';
 import { Subscription } from 'rxjs';
 import { Par } from '../models/Par';
 import { SlammerEvent } from '../models/SlammerEvent';
-import { MatTableDataSource } from '@angular/material/table';
-import { Group, Score } from '../models/Group';
+import { SlammerGroup } from '../models/SlammerGroup';
 
 @Component({
   selector: 'app-all-scores',
@@ -18,7 +17,7 @@ export class AllScoresComponent implements OnInit, OnDestroy {
   loadingPercentage: number;
   event: SlammerEvent;
   pars: Par[];
-  groups: Group[] = [];
+  groups: SlammerGroup[] = [];
   allScores: any;
 
   constructor(

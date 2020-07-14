@@ -1,10 +1,8 @@
 import { Injectable } from '@angular/core';
 import { HttpHeaders, HttpClient, HttpParams } from '@angular/common/http';
 import { map } from 'rxjs/operators';
-import { Router } from '@angular/router';
-import { Subject } from 'rxjs';
-import { Group } from '../models/Group';
 import { AuthService } from './auth.service';
+import { SlammerGroup } from '../models/SlammerGroup';
 
 @Injectable({
   providedIn: 'root'
@@ -66,7 +64,7 @@ export class SlammerEventService {
    * Get any scores set for a group the database
    * @param group Golf Group
    */
-  getGroupScores(eventId, group: Group) {
+  getGroupScores(eventId, group: SlammerGroup) {
     return this.http.post<any>('https://clubeg.golf/common/api_REST/v1/slammer-tour/events/get-group-scores/index.php',
     { group, eventId })
     .pipe(map(response => {
@@ -122,7 +120,7 @@ export class SlammerEventService {
   getNonSlammerEvents(date: string, maxNum: string){
     const headers = this.authService.getAuthHeader();
     const params = new HttpParams().set('date', date).set('maxNum', maxNum);
-    return this.http.get<any>('https://clubeg.golf/common/api_REST/v1/clubeg/event/get-upcoming-max/index.php',
+    return this.http.get<any>('https://clubeg.golf/common/api_REST/v1/clubeg/event/get-upcoming-for-user/index.php',
     { params, headers })
     .pipe(map(response => {
       return response;

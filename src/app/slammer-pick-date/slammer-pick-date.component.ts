@@ -4,6 +4,7 @@ import { Subscription } from 'rxjs';
 import { SlammerEventService } from '../services/slammer-event.service';
 import { EventBasic } from '../models/EventBasic';
 import { Router } from '@angular/router';
+import { MatDialogRef, MatDialog } from '@angular/material/dialog';
 
 /**
  * User date selection screen.
@@ -26,11 +27,14 @@ export class SlammerPickDateComponent implements OnInit, OnDestroy {
   events: EventBasic[];
   today: Date;
   tomorrow: Date;
+  private _TESTINGPASSWORD = 'golf87';
+  private dialogRef: MatDialogRef<any>;
 
   constructor(
     private slammerEventService: SlammerEventService,
     private router: Router,
-    private snackbar: MatSnackBar
+    private snackbar: MatSnackBar,
+    private dialog: MatDialog
   ) { }
 
   ngOnInit() {
@@ -111,25 +115,45 @@ export class SlammerPickDateComponent implements OnInit, OnDestroy {
    * User selected a tournament or other event. go to specific routing for the specific tournament
    * @param event 
    */
-  onEventSelected(event: EventBasic) {
-    // turn mysql date into a javasript Date
-    const dateParts = event.eventDate.split('-');
-    const eventDate = new Date(dateParts[0], dateParts[1] - 1, dateParts[2].substr(0, 2));
-    // compare dates to ensure scoring is done on the day of event
-    if (eventDate < this.today || eventDate > this.today) {
-      this.snackbar.open('Sorry scoring is only allowed on the day of the event.', 'Got it!');
+  onEventSelected(event: EventBasic, passwordDialog) {
+    if (!event.scorecardId) {
+      this.snackbar.open('Sorry, there is no scorecard for this event yet.', 'dismiss');
     } else {
-      switch(+event.eventTypeId) {
-        case 10: {
-          //Commish's Cup
-          alert('Commishs Cup!');
+      // turn mysql date into a javasript Date
+      const dateParts = event.eventDate.split('-');
+      const eventDate = new Date(dateParts[0], dateParts[1] - 1, dateParts[2].substr(0, 2));
+      // compare dates to ensure scoring is done on the day of event
+      if (eventDate < this.today || eventDate > this.today) {
+        if (+event.eventTypeId === 3) {
+          this.dialogRef = this.dialog.open(passwordDialog, { data: event });
+        } else {
+          this.snackbar.open('Sorry scoring is only allowed on the day of the event.', 'Got it!');
         }
-        default: {
-          this.snackbar.open('Sorry scoring not available for this event type yet.', 'Got it!');
+      } else {
+        switch(+event.eventTypeId) {
+          case 10: {
+            //Commish's Cup
+            alert('Commishs Cup!');
+          }
+          default: {
+            this.snackbar.open('Sorry scoring not available for this event type yet.', 'Got it!');
+          }
         }
       }
-      
     }
+  }
+
+  submit(password: string, event: EventBasic) {
+    this.close();
+    if (password === this._TESTINGPASSWORD) {
+      this.router.navigate(['/scoring/' + event.eventTypeId + '/' + event.id]);
+    } else {
+      this.snackbar.open('Sorry invalid password.', 'dismiss');
+    }
+  }
+
+  close() {
+    this.dialogRef.close();
   }
 
 

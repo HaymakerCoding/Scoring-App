@@ -11,7 +11,7 @@
         <h2 class="eventBtns"><span class="fun-text">{{ 'Slammer Tour: '}}</span>{{ event.name }}</h2>
       </div>
       <!--ALL EVENTS-->
-      <div *ngFor="let event of events" (click)="onEventSelected(event)" class="eventBoxes mb-2">
+      <div *ngFor="let event of events" (click)="onEventSelected(event, passwordDialog)" class="eventBoxes mb-2">
         <h5 class="dates">{{ event.eventDate | date: 'fullDate'}}</h5>
         <h2 class="eventBtns"><span class="fun-text">{{ event.tournamentName  + ': '}}</span>{{ event.courseName}}</h2>
       </div>
@@ -19,6 +19,22 @@
        
         
   </div>
+
+  <ng-template #passwordDialog let-data>
+    <mat-dialog-content>
+      <p>In development. Enter password for testing.</p>
+      <mat-form-field appearance="outline">
+        <mat-label>
+          Password
+        </mat-label>
+        <input #passwordInput matInput type="password">
+      </mat-form-field>
+    </mat-dialog-content>
+    <mat-dialog-actions>
+      <button color="primary" (click)="submit(passwordInput.value, data)" mat-raised-button>Submit</button>
+      <button color="primary" (click)="close()" mat-raised-button>Cancel</button>
+    </mat-dialog-actions>
+  </ng-template>
 
 </div>
 

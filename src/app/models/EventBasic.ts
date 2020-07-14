@@ -14,7 +14,8 @@ export class EventBasic {
       public type: TournamentType,
       public courseName: string,
       public eventTypeId: number,
-      public eventDate: any
+      public eventDate: any,
+      public scorecardId: number
   ) {}
 
 }

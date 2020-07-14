@@ -2,7 +2,6 @@ import { Component, OnInit, Input, OnDestroy, TemplateRef } from '@angular/core'
 import { SlammerEvent } from '../models/SlammerEvent';
 import { Subscription } from 'rxjs';
 import { SlammerEventService } from '../services/slammer-event.service';
-import { Group } from '../models/Group';
 import { Par } from '../models/Par';
 import { GroupScoresService } from '../services/group-scores.service';
 import { MatDialogRef, MatDialog } from '@angular/material/dialog';
@@ -10,6 +9,7 @@ import { MatSnackBar } from '@angular/material/snack-bar';
 import { BasicReg } from '../models/BasicReg';
 import { DoggieWinner } from '../slammer-scoring/slammer-scoring.component';
 import { DoggieService } from '../services/doggie.service';
+import { SlammerGroup } from '../models/SlammerGroup';
 
 /**
  * Main component for entering scores for a golf event.
@@ -34,7 +34,7 @@ export class EnterScoresComponent implements OnInit, OnDestroy {
   startHoleSelected: number;
   holeSelected: number;
   subscriptions: Subscription[] = [];
-  group: Group;
+  group: SlammerGroup;
   loading: boolean;
   activePlayerId: number; // the slammer member id of the current active player selected to view match outcome for
   activePlayerNumber: number;

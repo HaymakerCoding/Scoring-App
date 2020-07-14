@@ -1,0 +1,26 @@
+<div class="container pb-5">
+
+    <div *ngIf="loadingPercent < 100">
+        <mat-progress-bar [value]="loadingPercent" mode="determinate"></mat-progress-bar>
+        <h6 class="mt-2 text-center">Loading...</h6>
+    </div>
+    <div *ngIf="loadingPercent === 100">
+        <div class="logo-strip" style="height:80px; position: relative; padding-top:20px;">
+            <div class="fun-text">{{ event.courseName }}</div>
+            <div>{{ event.eventDate | date: 'fullDate' }}</div>
+            <img style="position: absolute; left:50%; top:50%; transform: translate(-50%, -50%); height:90%;" src="https://clubeg.golf/Images/Logos/ottawacitizenchampionship300.png">
+        </div>
+
+        <app-hole-by-hole *ngIf="currentScreen === 'Enter Scores'" [group]="group" [scorecard]="scorecard" [event]="event"></app-hole-by-hole>
+        <app-summary *ngIf="currentScreen === 'Summary'" [group]="group" [scorecard]="scorecard" [event]="event"></app-summary>
+        <app-leaderboard *ngIf="currentScreen === 'Leaderboard'" [group]="group" [scorecard]="scorecard" [event]="event"></app-leaderboard>
+
+        <div style="width:100%; display: flex; justify-content: center; align-items: center; padding-top:10px;">
+            <mat-button-toggle-group style="margin: auto;" [(ngModel)]="currentScreen" name="screenToggles">
+                <mat-button-toggle [value]="screen" *ngFor="let screen of screens">{{ screen }}</mat-button-toggle>
+            </mat-button-toggle-group>
+        </div>
+        <button class="mx-auto d-block mt-2" (click)="goToChooseEvent()" mat-raised-button color="primary">Change Event</button>
+    </div>
+
+</div>

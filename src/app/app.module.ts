@@ -10,6 +10,7 @@ import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { HomeComponent } from './home/home.component';
 import { LoginComponent } from './login/login.component';
 
+import {MatButtonToggleModule} from '@angular/material/button-toggle';
 import {MatPaginatorModule} from '@angular/material/paginator';
 import { MatMomentDateModule } from '@angular/material-moment-adapter';
 import {MatDatepickerModule} from '@angular/material/datepicker';
@@ -43,6 +44,10 @@ import { AllScoresComponent } from './all-scores/all-scores.component';
 import { QuotablesComponent } from './quotables/quotables.component';
 import { ServiceWorkerModule } from '@angular/service-worker';
 import { environment } from '../environments/environment';
+import { MainComponent } from './main/main.component';
+import { HoleByHoleComponent } from './hole-by-hole/hole-by-hole.component';
+import { SummaryComponent } from './summary/summary.component';
+import { LeaderboardComponent } from './leaderboard/leaderboard.component';
 
 @NgModule({
   declarations: [
@@ -55,7 +60,11 @@ import { environment } from '../environments/environment';
     EnterScoresComponent,
     BottomNavComponent,
     AllScoresComponent,
-    QuotablesComponent
+    QuotablesComponent,
+    MainComponent,
+    HoleByHoleComponent,
+    SummaryComponent,
+    LeaderboardComponent
   ],
   imports: [
     BrowserModule,
@@ -75,7 +84,7 @@ import { environment } from '../environments/environment';
     MatTabsModule,
     MatDialogModule,
     MatProgressBarModule,
-    MatButtonModule, MatIconModule, MatInputModule, MatSelectModule, MatSliderModule, MatToolbarModule,
+    MatButtonModule, MatIconModule, MatInputModule, MatSelectModule, MatSliderModule, MatToolbarModule, MatButtonToggleModule,
   MatCardModule, MatSlideToggleModule, MatListModule, MatTableModule, MatExpansionModule, MatBottomSheetModule, ServiceWorkerModule.register('ngsw-worker.js', { enabled: environment.production })
   ],
   entryComponents: [QuotablesComponent],
