@@ -5,15 +5,21 @@
         <h6 class="mt-2 text-center">Loading...</h6>
     </div>
     <div *ngIf="loadingPercent === 100">
-        <div class="logo-strip" style="height:80px; position: relative; padding-top:20px;">
-            <div class="fun-text">{{ event.courseName }}</div>
-            <div>{{ event.eventDate | date: 'fullDate' }}</div>
+        <div class="logo-strip row" style="height:80px; position: relative;">
+            <div class="fun-text col-5 sm-text text-center">
+                <div>
+                    <div class="teal-text">{{ event.courseName }}</div>
+                    <div class="line-text" *ngIf="event.qualifyingRound">{{ event.qualifyingRound }}</div>
+                </div>
+            </div>
+            
+            <div class="col-5 offset-2 sm-text text-center">{{ event.eventDate | date: 'EE LLL d'  }}</div>
             <img style="position: absolute; left:50%; top:50%; transform: translate(-50%, -50%); height:90%;" src="https://clubeg.golf/Images/Logos/ottawacitizenchampionship300.png">
         </div>
 
-        <app-hole-by-hole *ngIf="currentScreen === 'Enter Scores'" [group]="group" [scorecard]="scorecard" [event]="event"></app-hole-by-hole>
-        <app-summary *ngIf="currentScreen === 'Summary'" [group]="group" [scorecard]="scorecard" [event]="event"></app-summary>
-        <app-leaderboard *ngIf="currentScreen === 'Leaderboard'" [group]="group" [scorecard]="scorecard" [event]="event"></app-leaderboard>
+        <app-hole-by-hole *ngIf="currentScreen === 'Enter Scores'" [scorecard]="scorecard" [event]="event"></app-hole-by-hole>
+        <app-summary *ngIf="currentScreen === 'Scores'" [scorecard]="scorecard" [event]="event"></app-summary>
+        <app-leaderboard *ngIf="currentScreen === 'Leaderboard'" [eventTypeId]="eventTypeId" [scorecard]="scorecard" [event]="event"></app-leaderboard>
 
         <div style="width:100%; display: flex; justify-content: center; align-items: center; padding-top:10px;">
             <mat-button-toggle-group style="margin: auto;" [(ngModel)]="currentScreen" name="screenToggles">

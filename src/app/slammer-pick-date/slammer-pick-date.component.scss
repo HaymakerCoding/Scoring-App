@@ -8,6 +8,7 @@
     border:2px solid lightgray;
     border-radius:6px;
     padding:5px;
+    position: relative;
 }
 .dates{
     color:#717885; font-weight: 400;
@@ -19,4 +20,21 @@
 }
 .eventBoxes:hover > .dates{
     color:lightgray!important;
+}
+.eventBoxes:hover > .qualifying-text {
+    border:2px solid lightgray;
+    border-radius:6px;
+}
+.qualifying-text {
+    position: absolute;
+    top:-9px;
+    color:#717885; font-weight: 400;
+    background-color:white;
+    z-index:2;
+    left:50%;
+    transform: (translate(-50%));
+    padding-left: 10px;
+    padding-right: 10px;
+    line-height: 16px;
+    padding-bottom: 3px;
 }

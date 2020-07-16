@@ -7,3 +7,13 @@
 .title{
     font-size:18px;
 }
+.logo-container{
+    width:120px;
+    position: relative;
+    height:100%;
+}
+.scoring{
+    position: absolute; top:50%; left:50%; transform: translate(-50%, -50%);
+    color:white;
+    text-shadow: #000 0px 0px 1px, #000 0px 0px 1px, #000 0px 0px 1px;
+}

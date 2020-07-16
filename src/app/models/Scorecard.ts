@@ -1,5 +1,3 @@
-
-import { ScorecardHole } from './ScorecardHole';
 import { Hole } from './Hole';
 
 /**
@@ -19,7 +17,7 @@ export class Scorecard {
     public name: string,
     public section1: CourseSection,
     public section2: CourseSection,
-    public scorecardHoles: ScorecardHole[]
+    public scorecardHoles: Hole[]
   ) {}
 
 }

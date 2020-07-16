@@ -27,7 +27,9 @@ export class SlammerPickDateComponent implements OnInit, OnDestroy {
   events: EventBasic[];
   today: Date;
   tomorrow: Date;
+  allEvents: EventBasic[] = [];
   private _TESTINGPASSWORD = 'golf87';
+  private _MAXNUMEVENTS = 14;
   private dialogRef: MatDialogRef<any>;
 
   constructor(
@@ -72,7 +74,7 @@ export class SlammerPickDateComponent implements OnInit, OnDestroy {
    */
   getSlammerEvents(date: Date) {
     const mysqlDate = this.getMysqlDate(date);
-    this.subscriptions.push(this.slammerEventService.getEvents(mysqlDate, '14').subscribe(response => {
+    this.subscriptions.push(this.slammerEventService.getEvents(mysqlDate, this._MAXNUMEVENTS.toString()).subscribe(response => {
       if (response.status === 200) {
         this.slammerEvents = response.payload;
         this.getNonSlammerEvents(date);
@@ -84,16 +86,34 @@ export class SlammerPickDateComponent implements OnInit, OnDestroy {
 
   getNonSlammerEvents(date: Date) {
     const mysqlDate = this.getMysqlDate(date);
-    this.subscriptions.push(this.slammerEventService.getNonSlammerEvents(mysqlDate, '14').subscribe(response => {
+    this.subscriptions.push(this.slammerEventService.getNonSlammerEvents(mysqlDate, this._MAXNUMEVENTS.toString()).subscribe(response => {
       if (response.status === 200) {
         this.events = response.payload;
+        this.combineArrays(this.slammerEvents, this.events);
         this.setLoadingPercent(100);
       } else {
         console.error(response);
       }
     }));
-    
   }
+
+  /**
+   * Combine and sort the arrays by Date.
+   * We need to modify the slammer events a bit as currently slammer events are not same as all Events
+   * @param array1 
+   * @param array2 
+   */
+  combineArrays(array1: EventBasic[], array2: EventBasic[]) {
+    array1.forEach(x => {
+      x.eventDate = x.date;
+      x.isSlammerEvent = true;
+    });
+    this.allEvents = [...array1, ...array2];
+    this.allEvents.sort((a, b) => {
+      return new Date(b.eventDate) < new Date(a.eventDate) ? 1: new Date(b.eventDate) > new Date(a.eventDate) ? -1 : 0;
+    });
+  }
+
 
   /**
    * User selected a Slammer Tour event, allow enter scores if day of event

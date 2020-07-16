@@ -1,8 +1,8 @@
 <div class="row">
-    <div class="col-4">
-        <mat-form-field appearance="outline" style="width:100%">
-            <mat-label>Hole</mat-label>
-            <mat-select [(ngModel)]="selectedHole">
+    <div class="col-4 text-center pl-5">
+        <mat-form-field appearance="outline" style="width:100%; max-width:120px; margin: auto;">
+            <mat-label>Hole <mat-icon *ngIf="hasPersistedScores() === true" style="color:green;">done</mat-icon></mat-label>
+            <mat-select (selectionChange)="onHoleChange()" [(ngModel)]="selectedHole">
                 <mat-option [value]="hole" *ngFor="let hole of holes">{{ hole }}</mat-option>
             </mat-select>
         </mat-form-field>
@@ -28,11 +28,10 @@
         </div>
     </div>
     <div class="col-4 pl-0 text-center">
-        <div class="col-titles">Match</div>
+        <div class="col-titles">Total</div>
         <div class="result-rows" *ngFor="let participant of group.groupParticipants">
             <div class="ml-3 mr-3 scores teal-text">{{ getPlayersResult(participant) > 0 ?  '+' + getPlayersResult(participant) : getPlayersResult(participant) }}</div>
         </div>
     </div>
 </div>
-<br>
-<button class="mx-auto d-block" (click)="submitGroupScores()" mat-raised-button color="primary">Submit Scores</button>
+<button class="mx-auto d-block mt-2" (click)="submitGroupScores()" mat-raised-button color="primary">Submit Scores</button>

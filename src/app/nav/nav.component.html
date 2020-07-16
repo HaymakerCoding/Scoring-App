@@ -1,7 +1,11 @@
-<mat-toolbar style="background-image:url('https://clubeg.golf/background.jpg'); z-index:2; height:60px;background-position: bottom;">
-  <img src="../assets/logo.png" style="width:65px;" alt="ClubEG">
-  <span class="title fun-text ml-3" style="font-size:18px;">Scoring</span>
-  <button mat-raised-button color="primary" class="ml-2" (click)="onUserInstall()" *ngIf="deferredPrompt">Install</button>
+<mat-toolbar style="background-image:url('https://clubeg.golf/background.jpg'); z-index:2; height:50px;background-position: bottom; position: relative;">
+  <div class="logo-container">
+    <img src="../assets/logo.png" style="width:65px; margin-top: 3px;" alt="ClubEG">
+  </div>
+  <div class="title scoring fun-text ml-3" style="font-size:18px;">Scoring
+    <button mat-raised-button color="primary" class="ml-2" (click)="onUserInstall()" *ngIf="deferredPrompt">Install</button>
+  </div>
+  
   <span class="filler"></span>
   <mat-icon class="mr-2" (click)="toggleUserMenu()" *ngIf="loggedIn === true">account_box</mat-icon>
   <div class="user-name" *ngIf="loggedIn === true && userFullName">{{ userFullName }}</div>

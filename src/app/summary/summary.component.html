@@ -22,8 +22,7 @@
     <tbody>
         <tr *ngFor="let participant of group.groupParticipants">
             <td>{{ participant.fullName }}</td>
-            <td *ngFor="let hole of scorecard.section1.holes">{{ getHoleScore(participant, hole) }}</td>
-            <td *ngFor="let hole of scorecard.section2.holes">{{ getHoleScore(participant, hole) }}</td>
+            <td *ngFor="let hole of scorecard.scorecardHoles">{{ getHoleScore(participant, hole.no) }}</td>
         </tr>
     </tbody>
 </table>

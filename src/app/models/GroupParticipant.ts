@@ -14,7 +14,9 @@ export class GroupParticipant {
       public memberId: number,
       public fullName: string,
       public divisions: any,
-      public holeScores: HoleScore[]
+      public holeScores: HoleScore[],
+      public teeBlock1id: number,
+      public score: number
   ) {}
 
 }

@@ -10,3 +10,21 @@ body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }
     font-family: 'Sriracha', cursive;
     font-size:20px;
 }
+
+@media only screen and (max-width:800px) {
+    h1{
+        font-size:28px!important;
+    }
+    h2{
+        font-size:26px!important;
+    }
+    h3{
+        font-size:22px!important;
+    }
+    h4{
+        font-size:20px!important;
+    }
+    h5{
+        font-size:18px!important;
+    }
+}

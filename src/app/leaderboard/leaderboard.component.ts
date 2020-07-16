@@ -1,22 +1,131 @@
-import { Component, OnInit, Input } from '@angular/core';
+import { Component, OnInit, Input, OnDestroy } from '@angular/core';
 import { Scorecard } from '../models/Scorecard';
 import { Event } from '../models/Event';
 import { Group } from '../models/Group';
+import { GroupService } from '../services/group.service';
+import { DivisionService } from '../services/division.service';
+import { Subscription } from 'rxjs';
+import { GroupParticipant } from '../models/GroupParticipant';
+import { HoleScore } from '../models/HoleScore';
 
 @Component({
   selector: 'app-leaderboard',
   templateUrl: './leaderboard.component.html',
   styleUrls: ['./leaderboard.component.scss']
 })
-export class LeaderboardComponent implements OnInit {
+export class LeaderboardComponent implements OnInit, OnDestroy {
   
-  @Input() group: Group;
   @Input() scorecard: Scorecard;
   @Input() event: Event;
+  @Input() eventTypeId: number;
 
-  constructor() { }
+  group: Group;
+  usersDivision: any;
+  loadingPercent: number;
+  subscriptions: Subscription[] = [];
+  groups: Group[];
+  divisionParticipants: GroupParticipant[] = [];
+
+  constructor(
+    private groupService: GroupService,
+    private divisionService: DivisionService
+  ) { }
 
   ngOnInit(): void {
+    this.group = this.groupService.getGroup();
+    this.usersDivision = this.divisionService.getUsersDivision();
+    this.getAllGroups();
+  }
+
+  ngOnDestroy() {
+    this.subscriptions.forEach(sub => sub.unsubscribe());
+  }
+
+  setLoadingPercent(percent: number) {
+    this.loadingPercent = percent;
+  }
+
+  getAllGroups() {
+    this.subscriptions.push(this.groupService.getAll(this.event.id.toString(), this.eventTypeId.toString()).subscribe(response => {
+      if (response.status === 200) {
+        this.groups = response.payload;
+        this.setLoadingPercent(40);
+        this.filterGroupsByDivision();
+      } else {
+        console.error(response);
+      }
+    }));
+  }
+
+  filterGroupsByDivision() {
+    this.groups.forEach(group => {
+      group.groupParticipants.forEach(participant => {
+        participant.divisions.forEach( division => {
+          if (+division.id === +this.usersDivision.id) {
+            this.divisionParticipants.push(participant);
+          }
+        });
+      });
+    });
+    this.setLoadingPercent(70);
+    this.setCurrentScore();
+  }
+
+  /**
+   * Check and set each participants score.
+   * Score is calculated by comparing total par of all holes complete against the players par total
+   */
+  setCurrentScore() {
+    this.divisionParticipants.forEach(participant => {
+      participant.score = this.getScore(participant, this.getHoleComplete(participant));
+    });
+    this.setLoadingPercent(90);
+    this.setScores();
+  }
+
+  setScores() {
+    this.divisionParticipants.sort((a, b) => {
+      return a.score - b.score;
+    });
+    this.setLoadingPercent(100);
+  }
+
+  /**
+   * Get the max hole completed by a participant
+   */
+  getHoleComplete(participant: GroupParticipant): number {
+    let max = 0;
+    const holeScores = participant.holeScores;
+    if (holeScores) {
+      participant.holeScores.forEach(holeScore => {
+        if (+holeScore.hole > max) {
+          max = holeScore.hole;
+        }
+      });
+    }
+    return max;
+  }
+
+  /**
+   * Return the participants current score.
+   * Compare their hole scores total to toal pars.
+   * @param participant Grooup Participant
+   * @param maxHoleComplete The Max hole the participant has played up to
+   */
+  getScore(participant: GroupParticipant, maxHoleComplete: number): number {
+    let targetPar = 0;
+    let usersScore = 0;
+    this.scorecard.scorecardHoles.forEach(hole => {
+      if (+hole.no <= +maxHoleComplete) {
+        targetPar += +hole.par;
+      }
+    });
+    participant.holeScores.forEach(holeScore => {
+      if (+holeScore.hole <= +maxHoleComplete) {
+        usersScore += +holeScore.score;
+      }
+    });
+    return usersScore - targetPar;
   }
 
 }

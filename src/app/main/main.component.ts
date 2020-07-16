@@ -7,7 +7,7 @@ import { Group } from '../models/Group';
 import { GroupService } from '../services/group.service';
 import { Scorecard } from '../models/Scorecard';
 import { GroupParticipant } from '../models/GroupParticipant';
-import { GroupScoresService } from '../services/group-scores.service';
+import { DivisionService } from '../services/division.service';
 
 /**
  * Main screen for scoring for ALL event types
@@ -29,15 +29,15 @@ export class MainComponent implements OnInit, OnDestroy {
   group: Group;
   scorecard: Scorecard;
   scoreInitialized: number;
-  screens: Screen[] = [Screen.ENTERSCORES, Screen.SUMMARY, Screen.LEADERBOARD];
+  screens: Screen[] = [Screen.ENTERSCORES, Screen.SCORES, Screen.LEADERBOARD];
   currentScreen: Screen;
 
   constructor(
     private eventService: EventService,
     private activatedRoute: ActivatedRoute,
     private groupService: GroupService,
-    private groupScoreService: GroupScoresService,
-    private router: Router
+    private router: Router,
+    private divisionService: DivisionService
   ) { }
 
   ngOnInit(): void {
@@ -82,7 +82,20 @@ export class MainComponent implements OnInit, OnDestroy {
     this.subscriptions.push(this.groupService.getUsersGroup(this.eventId).subscribe(response => {
       if (response.status === 200) {
         this.group = response.payload;
+        this.groupService.setGroup(this.group);
         this.setLoadingPercent(60);
+        this.getUsersDivision();
+      } else {
+        console.error(response);
+      }
+    }));
+  }
+
+  getUsersDivision() {
+    this.subscriptions.push(this.divisionService.getUsersDivisionFromServer(this.eventTypeId).subscribe(response => {
+      if (response.status === 200) {
+        this.divisionService.setUsersDivision(response.payload);
+        this.setLoadingPercent(70);
         this.getScorecard();
       } else {
         console.error(response);
@@ -97,7 +110,6 @@ export class MainComponent implements OnInit, OnDestroy {
     this.subscriptions.push(this.eventService.getScorecard(this.event.scorecardId.toString()).subscribe(response => {
       if (response.status === 200) {
         this.scorecard = response.payload;
-        console.log(this.scorecard);
         this.setLoadingPercent(80);
         this.checkScores();
       } else {
@@ -127,8 +139,8 @@ export class MainComponent implements OnInit, OnDestroy {
    * @param participant Group Participant
    */
   initScore(participant: GroupParticipant) {
-    this.subscriptions.push(this.groupScoreService.initScore(participant, this.event.scorecardId).subscribe(response => {
-      if (response.status === 200) {
+    this.subscriptions.push(this.groupService.initScore(participant, this.event.scorecardId, this.getDefaultTeeBlockId()).subscribe(response => {
+      if (response.status === 201) {
         participant = response.payload
         if (this.scoreInitialized === this.group.groupParticipants.length) {
           this.setLoadingPercent(100);
@@ -137,6 +149,20 @@ export class MainComponent implements OnInit, OnDestroy {
         console.error(response);
       }
     }));
+  }
+
+  /**
+   * Temporary, get the teeblock id from a teeblock set on the first array of teeblocks from the scorecard.
+   * This is just for when we don't care about teeblocks. For real teeblock use we need to pull the members assigned tee block id.
+   * Either way, the scorecard for the course NEEDS to have the teeblock set
+   */
+  getDefaultTeeBlockId() {
+    const defaultTeeBlock = this.scorecard.scorecardHoles[0].teeBlocks[0].id;
+    if (defaultTeeBlock) {
+      return defaultTeeBlock;
+    } else {
+      console.error('Error, no default tee block found on the scorecard');
+    }
   }
 
   goToChooseEvent() {
@@ -148,6 +174,6 @@ export class MainComponent implements OnInit, OnDestroy {
 
 enum Screen{
   ENTERSCORES = 'Enter Scores',
-  SUMMARY = 'Summary',
+  SCORES = 'Scores',
   LEADERBOARD = 'Leaderboard'
 }

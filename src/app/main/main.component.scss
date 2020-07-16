@@ -2,5 +2,49 @@
     background: rgb(115,114,121);
     background: radial-gradient(circle, rgba(115,114,121,1) 0%, rgba(49,49,54,1) 68%, rgba(43,44,47,1) 100%);
     color:white;
-    min-width:300px;
+    min-width:240px;
+}
+.sm-text{
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: rgb(115,114,121);
+}
+.line-text{
+    position: relative;
+    font-size: 20px;
+    z-index: 1;
+    overflow: hidden;
+    text-align: center;
+    }
+.line-text:before, .line-text:after {
+    position: absolute;
+    top: 51%;
+    overflow: hidden;
+    width: 50%;
+    height: 2px;
+    content: '\a0';
+    background-color: rgb(115,114,121);
+}
+
+.line-text:before {
+    margin-left: -55%;
+    text-align: center;
+}
+.line-text:after{
+    margin-left: 5%;
+}
+.teal-text{
+    color:#107896;
+}
+
+
+
+@media only screen and (max-width: 800px) {
+    .sm-text {
+        font-size:14px;
+    }
+    .line-text{
+        font-size: 16px;
+    }
 }

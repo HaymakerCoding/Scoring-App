@@ -15,7 +15,8 @@ export class EventBasic {
       public courseName: string,
       public eventTypeId: number,
       public eventDate: any,
-      public scorecardId: number
+      public scorecardId: number,
+      public isSlammerEvent: boolean
   ) {}
 
 }
