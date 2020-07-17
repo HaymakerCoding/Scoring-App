@@ -34,6 +34,14 @@ export class EventService {
     }));
   }
 
+  getAllDivisions(tournamentId: string) {
+    const params = new HttpParams().set('tournamentId', tournamentId);
+    return this.http.get<any>('https://clubeg.golf/common/api_REST/v1/clubeg/tournaments/divisions/get-all/index.php',
+      { params })
+      .pipe(map(response => {
+        return response;
+    }));
+  }
     
 
   

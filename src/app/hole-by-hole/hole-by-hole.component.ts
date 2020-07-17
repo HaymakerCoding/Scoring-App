@@ -52,6 +52,7 @@ export class HoleByHoleComponent implements OnInit, OnDestroy {
   onHoleChange() {
     this.initDefaultScores();
     this.groupService.setCurrentHole(this.selectedHole);
+
   }
 
   hasPersistedScores() {
@@ -73,7 +74,7 @@ export class HoleByHoleComponent implements OnInit, OnDestroy {
     this.group.groupParticipants.forEach(participant => {
       const holeScore = participant.holeScores.find(x => +x.hole === +this.selectedHole);
       if (!holeScore) {
-        participant.holeScores.push(new HoleScore(null, participant.scoreId, this.getTeeBlockHoleId(this.selectedHole, participant.teeBlock1id), this.selectedHole, +this.getPar(this.selectedHole)));
+        participant.holeScores.push(new HoleScore(null, participant.scoreId, this.getTeeBlockHoleId(this.selectedHole, participant.teeBlock1id), this.selectedHole, +this.getPar(this.selectedHole), false, false));
       }
     });
   }
@@ -92,7 +93,7 @@ export class HoleByHoleComponent implements OnInit, OnDestroy {
     let holeScore: HoleScore;
     holeScore = participant.holeScores.find(x => +x.hole === +this.selectedHole);
     if (!holeScore) {
-      holeScore = new HoleScore(null, participant.scoreId, null, this.selectedHole, +this.getPar(this.selectedHole));
+      holeScore = new HoleScore(null, participant.scoreId, null, this.selectedHole, +this.getPar(this.selectedHole), false, false);
       holeScore.score += +value;
       participant.holeScores.push(holeScore);
     } else {
@@ -120,11 +121,7 @@ export class HoleByHoleComponent implements OnInit, OnDestroy {
    */
   getPar(hole: number): number {
     let scorecardHole: Hole;
-    if (hole < 10) {
-      scorecardHole = this.scorecard.section1.holes.find(x => +x.no === +hole);
-    } else {
-      scorecardHole = this.scorecard.section1.holes.find(x => +x.no === +hole);
-    }
+    scorecardHole = this.scorecard.scorecardHoles.find(x => +x.no === +hole);
     return scorecardHole ? +scorecardHole.par : null;
   }
 
@@ -136,6 +133,11 @@ export class HoleByHoleComponent implements OnInit, OnDestroy {
       if (response.status === 200) {
         this.snackbar.open('Scores saved!', '', { duration: 1000 });
         this.group = response.payload;
+        this.group.groupParticipants.forEach(participant => {
+          participant.holeScores.forEach(x => {
+            x.persisted = true;
+          });
+        });
         this.groupService.setGroup(this.group);
         this.goToNextHole();
         this.changeDetection.detectChanges();
@@ -169,6 +171,10 @@ export class HoleByHoleComponent implements OnInit, OnDestroy {
     const result = userPar - parTarget;
     return result !== 0 ? result : 'Even';
 
+  }
+
+  loginAdmin(password: string) {
+    alert(password);
   }
 
 

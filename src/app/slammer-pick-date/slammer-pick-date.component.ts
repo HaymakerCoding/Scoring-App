@@ -144,19 +144,21 @@ export class SlammerPickDateComponent implements OnInit, OnDestroy {
       const eventDate = new Date(dateParts[0], dateParts[1] - 1, dateParts[2].substr(0, 2));
       // compare dates to ensure scoring is done on the day of event
       if (eventDate < this.today || eventDate > this.today) {
-        if (+event.eventTypeId === 3) {
-          this.dialogRef = this.dialog.open(passwordDialog, { data: event });
-        } else {
-          this.snackbar.open('Sorry scoring is only allowed on the day of the event.', 'Got it!');
-        }
+        this.snackbar.open('Sorry scoring is only allowed on the day of the event.', 'Got it!');
       } else {
         switch(+event.eventTypeId) {
+          case 3: {
+            this.router.navigate(['/scoring/' + event.eventTypeId + '/' + event.id]);
+            break;
+          }
           case 10: {
             //Commish's Cup
             alert('Commishs Cup!');
+            break;
           }
           default: {
             this.snackbar.open('Sorry scoring not available for this event type yet.', 'Got it!');
+            break;
           }
         }
       }

@@ -9,7 +9,9 @@ export class HoleScore {
     public scoreId: number,
     public teeBlockHoleId: number,
     public hole: number,
-    public score: number
+    public score: number,
+    public official: boolean,
+    public persisted: boolean
   ) {}
 
 }

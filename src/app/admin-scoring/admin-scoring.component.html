@@ -1,0 +1,96 @@
+
+<div class="container pb-5">
+
+    <h1>Admin Scoring</h1>
+    <p>You will require a pasword to save changes</p>
+    <div *ngIf="loadingPercent < 100">
+        <mat-progress-bar [value]="loadingPercent" mode="determinate"></mat-progress-bar>
+        <h6 class="mt-2 text-center">Loading...</h6>
+    </div>
+    <div *ngIf="loadingPercent === 100">
+
+        <mat-form-field appearance="outline">
+            <mat-label>Division</mat-label>
+            <mat-select (selectionChange)="onDivisionSelected()" [(ngModel)]="divisionSelected">
+                <mat-option [value]="division" *ngFor="let division of divisions">{{ division.name }}</mat-option>
+            </mat-select>
+        </mat-form-field>
+      
+        <div class="table-container" *ngIf="divisionSelected">
+            <table mat-table [dataSource]="getDatasource(divisionParticipants)" class="full-width mat-elevation-z4">
+                <ng-container sticky [matColumnDef]="'hole'">
+                    <th sticky mat-header-cell *matHeaderCellDef>Hole</th> 
+                </ng-container>
+                <ng-container *ngFor="let hole of scorecard.scorecardHoles" [matColumnDef]="'h'+hole.no">
+                    <th class="firstNum" mat-header-cell *matHeaderCellDef>{{ hole.no }}</th>    
+                </ng-container>
+                <ng-container sticky [matColumnDef]="'par'">
+                    <th mat-header-cell *matHeaderCellDef>Par</th> 
+                </ng-container>
+                <ng-container *ngFor="let hole of scorecard.scorecardHoles" [matColumnDef]="'p'+hole.no">
+                    <th class="firstNum" mat-header-cell *matHeaderCellDef>{{ hole.par }}</th>    
+                </ng-container>
+                <div *ngFor="let column of columns">
+                    <ng-container *ngIf="column === 'name'" sticky [matColumnDef]="column">
+                        <td mat-cell *matCellDef="let participant">
+                            {{ column === 'name' ? participant.fullName : getHoleScore(participant, column) }}
+                        </td>
+                    </ng-container>
+                    <ng-container *ngIf="column !== 'name'" [matColumnDef]="column">
+                        <td class="firstNum" mat-cell *matCellDef="let participant">
+                            {{ column === 'name' ? participant.fullName : getHoleScore(participant, column) }}
+                        </td>
+                    </ng-container>
+                </div>
+                <tr class="dark-bkg" mat-header-row *matHeaderRowDef="holeColumns"></tr>
+                <tr class="light-bkg" mat-header-row *matHeaderRowDef="parColumns"></tr>
+                <tr class="clickable" (click)="editScores(participant, optionsDialog)" mat-row *matRowDef="let participant; columns: columns;"></tr>
+            </table>
+            <p>
+                <mat-icon style="color:green;">done</mat-icon>Official scores
+            </p>
+        </div>
+        
+    </div>
+
+    <!--Dialog to edit the partipants scores-->
+    <ng-template let-data #editDialog>
+        <h3 mat-dialog-title>{{ 'Editing ' + data.fullName + 's Scores' }}</h3>
+        <mat-dialog-content>
+            <div class="row" style="width:100%;">
+                <div class="col-4" *ngFor="let holeScore of data.holeScores; let i = index">
+                    <mat-form-field appearance="outline" style="width:99%">
+                        <mat-label># {{ holeScore.hole }}</mat-label>
+                        <input #scoreInputs (input)="onScoreEnter(i)" [(ngModel)]="holeScore.score" matInput>
+                    </mat-form-field>
+                </div>
+            </div>
+            <mat-form-field appearance="outline">
+                <mat-label>Password</mat-label>
+                <input #passwordInput2 matInput>
+            </mat-form-field>
+        </mat-dialog-content>
+        <mat-dialog-actions>
+            <button (click)="saveScores(data, passwordInput2.value)" mat-raised-button color="primary">Save Changes</button>
+            <button (click)="close()" mat-raised-button color="primary">Cancel</button>
+        </mat-dialog-actions>
+    </ng-template>
+
+    <!--Dialog to make scores official OR select editing-->
+    <ng-template let-data #optionsDialog>
+        <h3 mat-dialog-title>{{ data.fullName + 's Scores' }}</h3>
+        <mat-dialog-content>
+            <button class="full-width" (click)="showEdit(data, editDialog)" mat-raised-button color="primary">Edit</button>
+            <hr>
+            <button class="full-width" mat-raised-button color="primary" (click)="makeScoresOfficial(data, passwordInput.value)">Make Official</button>
+            <br>
+            <mat-form-field appearance="outline">
+                <mat-label>Password</mat-label>
+                <input #passwordInput matInput>
+            </mat-form-field>
+            <hr>
+            <button class="full-width" (click)="close()" mat-raised-button color="primary">Cancel</button>
+        </mat-dialog-content>
+    </ng-template>
+
+</div>

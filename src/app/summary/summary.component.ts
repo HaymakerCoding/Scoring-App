@@ -6,6 +6,7 @@ import { Hole } from '../models/Hole';
 import { GroupParticipant } from '../models/GroupParticipant';
 import { HoleScore } from '../models/HoleScore';
 import { GroupService } from '../services/group.service';
+import { MatTableDataSource } from '@angular/material/table';
 
 @Component({
   selector: 'app-summary',
@@ -17,6 +18,10 @@ export class SummaryComponent implements OnInit {
   @Input() scorecard: Scorecard;
   @Input() event: Event;
   group: Group;
+  holeColumns = [];
+  parColumns = [];
+  dataSource: MatTableDataSource<any>;
+  columns: string[] = ['name'];
 
   constructor(
     private groupService: GroupService
@@ -24,6 +29,16 @@ export class SummaryComponent implements OnInit {
 
   ngOnInit(): void {
     this.group = this.groupService.getGroup();
+    this.holeColumns.push('hole');
+    this.scorecard.scorecardHoles.forEach(hole => {
+      this.holeColumns.push('h'+hole.no);
+    });
+    this.parColumns.push('par');
+    this.scorecard.scorecardHoles.forEach(hole => {
+      this.parColumns.push('p'+hole.no);
+      this.columns.push(hole.no.toString());
+    });
+    this.dataSource = new MatTableDataSource(this.group.groupParticipants);
   }
 
   /**
@@ -32,7 +47,7 @@ export class SummaryComponent implements OnInit {
    */
   getHoleScore(participant: GroupParticipant, hole: number): number {
     const holeScore: HoleScore = participant.holeScores.find(x => +x.hole === +hole);
-    return holeScore ? holeScore.score : 0;
+    return holeScore && holeScore.id ? holeScore.score : null;
   }
 
 }

@@ -14,7 +14,7 @@ export class Event {
       public eventDate: any,
       public eventTime: any,
       public qualifyingRound: QualifyingRound,
-      public scorecardId: number
+      public scorecardId: number,
 
   ) {}
 

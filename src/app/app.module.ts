@@ -48,6 +48,8 @@ import { MainComponent } from './main/main.component';
 import { HoleByHoleComponent } from './hole-by-hole/hole-by-hole.component';
 import { SummaryComponent } from './summary/summary.component';
 import { LeaderboardComponent } from './leaderboard/leaderboard.component';
+import { AdminScoringComponent } from './admin-scoring/admin-scoring.component';
+import { AdminScoringEditComponent } from './admin-scoring-edit/admin-scoring-edit.component';
 
 @NgModule({
   declarations: [
@@ -64,7 +66,9 @@ import { LeaderboardComponent } from './leaderboard/leaderboard.component';
     MainComponent,
     HoleByHoleComponent,
     SummaryComponent,
-    LeaderboardComponent
+    LeaderboardComponent,
+    AdminScoringComponent,
+    AdminScoringEditComponent
   ],
   imports: [
     BrowserModule,

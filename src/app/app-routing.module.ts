@@ -7,12 +7,14 @@ import { SlammerPickDateComponent } from './slammer-pick-date/slammer-pick-date.
 import { SlammerScoringComponent } from './slammer-scoring/slammer-scoring.component';
 import { AllScoresComponent } from './all-scores/all-scores.component';
 import { MainComponent } from './main/main.component';
+import { AdminScoringComponent } from './admin-scoring/admin-scoring.component';
 
 
 const routes: Routes = [
   { path: 'home', component: HomeComponent, canActivate: [AuthGuardService] },
   { path: 'login', component: LoginComponent },
   { path: 'scoring/:eventTypeId/:eventId', component: MainComponent,  canActivate: [AuthGuardService]},
+  { path: 'scoring/:eventTypeId/:eventId/admin', component: AdminScoringComponent, canActivate: [AuthGuardService] },
 
   { path: 'slammer-tour/pick-date', component: SlammerPickDateComponent , canActivate: [AuthGuardService]},
   { path: 'slammer-tour/scoring/:id', component: SlammerScoringComponent, canActivate: [AuthGuardService]},

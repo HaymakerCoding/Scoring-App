@@ -5,3 +5,9 @@
     padding-bottom: 5px;
     color:#107896;
 }
+
+@media only screen and (max-width:800px) {
+    .headings{
+        font-size:12px!important;
+    }
+}

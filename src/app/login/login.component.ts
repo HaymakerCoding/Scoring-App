@@ -66,6 +66,7 @@ export class LoginComponent implements OnInit, OnDestroy, AfterViewInit {
         this.authService.setLoggedIn(true);
         this.router.navigate(['home']);
         this.close();
+  
       } else if (response.status === 401) {
         console.error(response);
         const msg = response.payload;

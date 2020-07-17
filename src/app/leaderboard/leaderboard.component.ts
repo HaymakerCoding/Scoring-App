@@ -8,6 +8,12 @@ import { Subscription } from 'rxjs';
 import { GroupParticipant } from '../models/GroupParticipant';
 import { HoleScore } from '../models/HoleScore';
 
+/**
+ * Show a leaderboard view of all players.
+ * Filtered by division selected.
+ * 
+ * @author Malcolm Roy
+ */
 @Component({
   selector: 'app-leaderboard',
   templateUrl: './leaderboard.component.html',
@@ -80,10 +86,10 @@ export class LeaderboardComponent implements OnInit, OnDestroy {
       participant.score = this.getScore(participant, this.getHoleComplete(participant));
     });
     this.setLoadingPercent(90);
-    this.setScores();
+    this.sortScores();
   }
 
-  setScores() {
+  sortScores() {
     this.divisionParticipants.sort((a, b) => {
       return a.score - b.score;
     });
@@ -94,16 +100,16 @@ export class LeaderboardComponent implements OnInit, OnDestroy {
    * Get the max hole completed by a participant
    */
   getHoleComplete(participant: GroupParticipant): number {
-    let max = 0;
+    let complete = 0;
     const holeScores = participant.holeScores;
     if (holeScores) {
       participant.holeScores.forEach(holeScore => {
-        if (+holeScore.hole > max) {
-          max = holeScore.hole;
+        if (holeScore.id) {
+          complete++;
         }
       });
     }
-    return max;
+    return complete;
   }
 
   /**
@@ -115,17 +121,15 @@ export class LeaderboardComponent implements OnInit, OnDestroy {
   getScore(participant: GroupParticipant, maxHoleComplete: number): number {
     let targetPar = 0;
     let usersScore = 0;
-    this.scorecard.scorecardHoles.forEach(hole => {
-      if (+hole.no <= +maxHoleComplete) {
-        targetPar += +hole.par;
-      }
-    });
     participant.holeScores.forEach(holeScore => {
-      if (+holeScore.hole <= +maxHoleComplete) {
+      if (holeScore.id) {
         usersScore += +holeScore.score;
+        targetPar += +this.scorecard.scorecardHoles.find(x => +x.no === +holeScore.hole).par;
       }
     });
     return usersScore - targetPar;
   }
+
+  
 
 }
