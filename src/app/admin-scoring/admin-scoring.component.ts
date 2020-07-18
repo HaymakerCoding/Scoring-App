@@ -42,6 +42,8 @@ export class AdminScoringComponent implements OnInit, OnDestroy {
   dialogRef: MatDialogRef<any>;
   @ViewChildren('scoreInputs') scoreInputs: QueryList<any>;
   season: Season;
+  private password: string;
+  validPassword: boolean;
 
   constructor(
     private eventService: EventService,
@@ -52,6 +54,7 @@ export class AdminScoringComponent implements OnInit, OnDestroy {
   ) { }
 
   ngOnInit(): void {
+    this.validPassword = false;
     this.getRouteParams();
   }
 
@@ -98,6 +101,7 @@ export class AdminScoringComponent implements OnInit, OnDestroy {
         } else {
           this.event = this.events[0];
         }
+        console.log(this.event);
         this.getScorecard();
       } else {
         console.error(response);
@@ -237,9 +241,9 @@ export class AdminScoringComponent implements OnInit, OnDestroy {
    * @param participant Group participant
    * @param password User entered password
    */
-  makeScoresOfficial(participant: GroupParticipant, password) {
-    if (!password || password === '') {
-      this.snackbar.open('Please enter password', 'dismiss');
+  makeScoresOfficial(participant: GroupParticipant) {
+    if (!this.password || this.password === '') {
+      this.validPassword = false;
     } else {
       let missingScores;
       this.scorecard.scorecardHoles.forEach(hole => {
@@ -251,7 +255,7 @@ export class AdminScoringComponent implements OnInit, OnDestroy {
       if (missingScores && missingScores === true) {
         this.snackbar.open('Please ensure player has scores for ALL holes first.', 'dismiss');
       } else {
-        this.setOfficial(participant, password);
+        this.setOfficial(participant, this.password);
       }
     }
   }
@@ -284,11 +288,11 @@ export class AdminScoringComponent implements OnInit, OnDestroy {
    * @param participant Group Participant
    * @param password User entered password, verifies access rights
    */
-  saveScores(participant: GroupParticipant, password: string) {
-    if (!password || password === '') {
-      this.snackbar.open('Please enter password', 'dismiss');
+  saveScores(participant: GroupParticipant) {
+    if (!this.password || this.password === '') {
+      this.validPassword = false;
     } else {
-      this.groupService.saveParticipantScoreByPassword(participant, password, this.event.id).subscribe(response => {
+      this.groupService.saveParticipantScoreByPassword(participant, this.password, this.event.id).subscribe(response => {
         if (response.status === 200) {
           this.close();
           participant = response.payload;
@@ -456,17 +460,30 @@ export class AdminScoringComponent implements OnInit, OnDestroy {
     if (confirm('Are you sure you want to permanently delete this player score?') === true) {
       this.setLoadingPercent(20);
       this.close();
-      this.subscriptions.push(this.groupService.deleteHoleScore(holeScore.id.toString()).subscribe(response => {
+      this.subscriptions.push(this.eventService.verifyEventPassword(this.event.id, this.password).subscribe(response => {
         if (response.status === 200) {
-          this.setLoadingPercent(100);
-          participant.holeScores = participant.holeScores.filter(x => +x.id !== +holeScore.id);
+          this.setLoadingPercent(50);
+          this.subscriptions.push(this.groupService.deleteHoleScore(holeScore.id.toString()).subscribe(response2 => {
+            if (response2.status === 200) {
+              this.setLoadingPercent(100);
+              participant.holeScores = participant.holeScores.filter(x => +x.id !== +holeScore.id);
+            } else {
+              console.error(response2);
+            }
+          }));
         } else {
+          this.setLoadingPercent(100);
+          this.validPassword = false;
           console.error(response);
         }
       }));
     }
   }
 
+  /**
+   * User changed the event.
+   * Dump data specific to event and fetch new from db
+   */
   onEventSelected() {
     this.setLoadingPercent(20);
     this.columns = ['name'];
@@ -475,11 +492,23 @@ export class AdminScoringComponent implements OnInit, OnDestroy {
     this.divisionSelected = null;
     this.groups = [];
     this.divisionParticipants = [];
+    this.validPassword = false;
+    this.password = null;
     this.getScorecard();
-
   }
 
-
+  onSubmitPassword(password) {
+    this.subscriptions.push(this.eventService.verifyEventPassword(this.event.id, password).subscribe(response => {
+      if (response.status === 200) {
+        this.password = password;
+        this.validPassword = true;
+      } else {
+        this.snackbar.open('Invalid password. Note: password may be specific to event', 'dismiss');
+        this.validPassword = false;
+        console.error(response);
+      }
+    }));
+  }
 }
 
 interface Problem {

@@ -69,6 +69,13 @@ export class EventService {
     }));
   }
 
+  verifyEventPassword(eventId, password) {
+    const headers = this.authService.getAuthHeader();
+      return this.http.post<any>('https://clubeg.golf/common/api_REST/v1/clubeg/event/verify-event-password/index.php',
+      { eventId, password }, { headers }).pipe(map(response => {
+        return response;
+      }));
+  }
   
 
 }
