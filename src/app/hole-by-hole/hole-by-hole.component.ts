@@ -74,7 +74,7 @@ export class HoleByHoleComponent implements OnInit, OnDestroy {
     this.group.groupParticipants.forEach(participant => {
       const holeScore = participant.holeScores.find(x => +x.hole === +this.selectedHole);
       if (!holeScore) {
-        participant.holeScores.push(new HoleScore(null, participant.scoreId, this.getTeeBlockHoleId(this.selectedHole, participant.teeBlock1id), this.selectedHole, +this.getPar(this.selectedHole), false, false));
+        participant.holeScores.push(new HoleScore(null, participant.scoreId, this.getTeeBlockHoleId(this.selectedHole, participant.teeBlock1id), this.selectedHole, +this.getPar(this.selectedHole), 0, false));
       }
     });
   }
@@ -93,7 +93,7 @@ export class HoleByHoleComponent implements OnInit, OnDestroy {
     let holeScore: HoleScore;
     holeScore = participant.holeScores.find(x => +x.hole === +this.selectedHole);
     if (!holeScore) {
-      holeScore = new HoleScore(null, participant.scoreId, null, this.selectedHole, +this.getPar(this.selectedHole), false, false);
+      holeScore = new HoleScore(null, participant.scoreId, null, this.selectedHole, +this.getPar(this.selectedHole), 0, false);
       holeScore.score += +value;
       participant.holeScores.push(holeScore);
     } else {
@@ -175,6 +175,20 @@ export class HoleByHoleComponent implements OnInit, OnDestroy {
 
   loginAdmin(password: string) {
     alert(password);
+  }
+
+  /**
+   * Check if the participants scores are flagged as official
+   * @param participant Group Participant
+   */
+  hasOfficialScores(participant: GroupParticipant) {
+    let offical = true;
+    participant.holeScores.forEach(x => {
+      if (+x.official === 0) {
+        offical = false;
+      }
+    });
+    return offical;
   }
 
 

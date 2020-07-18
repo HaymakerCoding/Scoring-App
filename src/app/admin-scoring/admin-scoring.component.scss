@@ -46,3 +46,7 @@ td.mat-column-star {
   .clickable:hover{
     border: 2px solid #107896;
   }
+  .hover-link:hover{
+    cursor: pointer;
+    text-decoration: underline;
+  }

@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, QueryList, ViewChildren, ElementRef } from '@angular/core';
+import { Component, OnInit, OnDestroy, QueryList, ViewChildren, ElementRef, TemplateRef } from '@angular/core';
 import { GroupService } from '../services/group.service';
 import { ActivatedRoute, Params } from '@angular/router';
 import { EventService } from '../services/event.service';
@@ -74,18 +74,6 @@ export class AdminScoringComponent implements OnInit, OnDestroy {
       if (response.status === 200) {
         this.event = response.payload;
         this.setLoadingPercent(40);
-        this.getGroups();
-      } else {
-        console.error(response);
-      }
-    }));
-  }
-
-  getGroups() {
-    this.subscriptions.push(this.groupService.getAll(this.eventId, this.eventTypeId).subscribe(response => {
-      if (response.status === 200) {
-        this.groups = response.payload;
-        this.setLoadingPercent(60);
         this.getScorecard();
       } else {
         console.error(response);
@@ -101,7 +89,7 @@ export class AdminScoringComponent implements OnInit, OnDestroy {
       if (response.status === 200) {
         this.scorecard = response.payload;
         this.setColumns();
-        this.setLoadingPercent(80);
+        this.setLoadingPercent(60);
         this.getDivisions();
       } else {
         console.error(response);
@@ -109,23 +97,34 @@ export class AdminScoringComponent implements OnInit, OnDestroy {
     }));
   }
 
+  /**
+   * Setup the columns for the tables of holes scores.
+   * Mat table uses 3 headers of columns
+   */
   setColumns() {
     this.holeColumns.push('hole');
     this.scorecard.scorecardHoles.forEach(hole => {
       this.holeColumns.push('h'+hole.no);
+      
     });
+    this.holeColumns.push('total');
     this.parColumns.push('par');
     this.scorecard.scorecardHoles.forEach(hole => {
       this.parColumns.push('p'+hole.no);
       this.columns.push(hole.no.toString());
     });
+    this.parColumns.push('parTotal');
+    this.columns.push('totalScore');
+    
   }
 
+  /**
+   * Get all divisions for the tournament
+   */
   getDivisions() {
     this.subscriptions.push(this.eventService.getAllDivisions(this.eventTypeId).subscribe(response => {
       if (response.status === 200) {
         this.divisions = response.payload;
-        this.checkScores();
         this.setLoadingPercent(100);
       } else {
         console.error(response);
@@ -133,7 +132,33 @@ export class AdminScoringComponent implements OnInit, OnDestroy {
     }));
   }
 
+  /**
+   * Get all groups/participants for the event
+   */
+  getGroups() {
+    this.subscriptions.push(this.groupService.getAll(this.eventId, this.eventTypeId).subscribe(response => {
+      if (response.status === 200) {
+        this.groups = response.payload;
+        this.checkScores();
+        this.filterParticipantsByDivision();
+      } else {
+        console.error(response);
+      }
+    }));
+  }
+
+  /**
+   * Reload groups and filter by division every time user changes/selects a division
+   */
   onDivisionSelected() {
+    this.setLoadingPercent(20);
+    this.getGroups();
+  }
+
+  /**
+   * Filter all groups into a list of participants with division matching the selected division
+   */
+  filterParticipantsByDivision() {
     this.divisionParticipants = [];
     this.groups.forEach(group => {
       group.groupParticipants.forEach(participant => {
@@ -142,6 +167,11 @@ export class AdminScoringComponent implements OnInit, OnDestroy {
         }
       });
     });
+    //now sort alpha by name
+    this.divisionParticipants.sort((a, b) => {
+      return a.fullName > b.fullName ? 1: a.fullName < b.fullName ? -1 : 0;
+    });
+    this.setLoadingPercent(100);
   }
 
   /**
@@ -166,7 +196,7 @@ export class AdminScoringComponent implements OnInit, OnDestroy {
     this.scorecard.scorecardHoles.forEach(hole => {
       const holeScore = participant.holeScores.find(x => +x.hole === +hole.no);
       if (!holeScore) {
-        participant.holeScores.push(new HoleScore(null, participant.scoreId, this.getTeeBlockHoleId(+hole.no, this.getDefaultTeeBlockId()), +hole.no, null, false, false));
+        participant.holeScores.push(new HoleScore(null, participant.scoreId, this.getTeeBlockHoleId(+hole.no, this.getDefaultTeeBlockId()), +hole.no, null, 0, false));
       }
     })
     console.log(participant);
@@ -177,6 +207,12 @@ export class AdminScoringComponent implements OnInit, OnDestroy {
     return this.scorecard.scorecardHoles.find(x => +x.no === +holeNum).teeBlocks.find(block => +block.id === +teeBlockId).teeBlockHoleId;
   }
 
+  /**
+   * On user selecting to make a participants scores official.
+   * Check password was entered and holes for all scores set. then send to function that updates datbase
+   * @param participant Group participant
+   * @param password User entered password
+   */
   makeScoresOfficial(participant: GroupParticipant, password) {
     if (!password || password === '') {
       this.snackbar.open('Please enter password', 'dismiss');
@@ -206,7 +242,7 @@ export class AdminScoringComponent implements OnInit, OnDestroy {
       if (response.status === 200) {
         this.close();
         this.snackbar.open('Scores are official!', '', { duration: 1100 });
-        participant.holeScores.forEach(x => x.official === true);
+        participant.holeScores.forEach(x => x.official = 1);
       } else {
         console.error(response);
       }
@@ -244,23 +280,27 @@ export class AdminScoringComponent implements OnInit, OnDestroy {
    * Check if each user in group has scores. If score id is null then we create an initial score record for the participant
    */
   checkScores() {
+    const participantsToInit: GroupParticipant[] = [];
     this.groups.forEach(group => {
       group.groupParticipants.forEach(participant => {
         if (participant.scoreId === null) {
-          this.initScore(participant);
+          participantsToInit.push(participant);
         } 
       });
     });
+    if (participantsToInit.length > 0) {
+      this.initScores(participantsToInit);
+    }
   }
 
   /**
    * Create a score record for the user, returns the participant with their scoreId set to their new score record
    * @param participant Group Participant
    */
-  initScore(participant: GroupParticipant) {
-    this.subscriptions.push(this.groupService.initScore(participant, this.event.scorecardId, this.getDefaultTeeBlockId()).subscribe(response => {
+  initScores(participants: GroupParticipant[]) {
+    this.subscriptions.push(this.groupService.initMultipleScores(participants, this.event.scorecardId, this.getDefaultTeeBlockId()).subscribe(response => {
       if (response.status === 201) {
-        participant = response.payload
+        participants = response.payload
       } else {
         console.error(response);
       }
@@ -294,4 +334,112 @@ export class AdminScoringComponent implements OnInit, OnDestroy {
     }
   }
 
+  /**
+   * Check if the participants scores are flagged as official
+   * @param participant Group Participant
+   */
+  hasOfficialScores(participant: GroupParticipant) {
+    let offical = true;
+    participant.holeScores.forEach(x => {
+      if (+x.official === 0) {
+        offical = false;
+      }
+    });
+    return offical;
+  }
+
+  /**
+   * Get par total for the scorecard
+   */
+  getParTotal(): number {
+    let parTotal = 0;
+    this.scorecard.scorecardHoles.forEach(x => {
+      parTotal += +x.par;
+    });
+    return parTotal;
+  }
+
+  /**
+   * Return the participants current score.
+   * Compare their hole scores total to toal pars.
+   * @param participant Grooup Participant
+   */
+  getScore(participant: GroupParticipant): number {
+    let targetPar = 0;
+    let usersScore = 0;
+    participant.holeScores.forEach(holeScore => {
+      if (holeScore.id) {
+        usersScore += +holeScore.score;
+        targetPar += +this.scorecard.scorecardHoles.find(x => +x.no === +holeScore.hole).par;
+      }
+    });
+    return +usersScore - +targetPar;
+  }
+
+  /**
+   * Check for any duplicate holeScores for a user.
+   * Return number found
+   */
+  checkNumIssues(): number {
+    let issues = 0;
+    this.divisionParticipants.forEach(participant => {
+      this.scorecard.scorecardHoles.forEach(hole => {
+        const found = participant.holeScores.filter(x => +x.teeBlockHoleId === +hole.teeBlocks[0].teeBlockHoleId);
+        if (found.length > 1) {
+          issues++;
+        }
+      });
+    });
+    return issues;
+  }
+
+  /**
+   * Gather all problems (duplicates) and pass them to a dialog for user to view/edit
+   * @param dialog Dialog to open
+   */
+  showProblems(dialog: TemplateRef<any>) {
+    const problems: Problem[] = [];
+    this.divisionParticipants.forEach(participant => {
+      this.scorecard.scorecardHoles.forEach(hole => {
+        const found: HoleScore[] = participant.holeScores.filter(x => +x.teeBlockHoleId === +hole.teeBlocks[0].teeBlockHoleId);
+        if (found.length > 1) {
+          const problemHoles: HoleScore[] = [];
+          for (let f of found) {
+            problemHoles.push(f);
+          }
+          problems.push({ participant, holeScores: problemHoles });
+        }
+      });
+    });
+    if (problems.length > 0) {
+      this.dialogRef = this.dialog.open(dialog, { data: problems });
+    }
+  }
+
+  /**
+   * Remove a hole score for a participant
+   * @param holeScore Hole Score to remove
+   * @param participant Group participant
+   */
+  deleteDuplicateScore(holeScore: HoleScore, participant: GroupParticipant) {
+    if (confirm('Are you sure you want to permanently delete this player score?') === true) {
+      this.setLoadingPercent(20);
+      this.close();
+      this.subscriptions.push(this.groupService.deleteHoleScore(holeScore.id.toString()).subscribe(response => {
+        if (response.status === 200) {
+          this.setLoadingPercent(100);
+          participant.holeScores = participant.holeScores.filter(x => +x.id !== +holeScore.id);
+        } else {
+          console.error(response);
+        }
+      }));
+    }
+  }
+
+
+}
+
+interface Problem {
+  participant: GroupParticipant;
+  holeScores: HoleScore[]
 }

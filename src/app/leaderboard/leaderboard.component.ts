@@ -101,8 +101,7 @@ export class LeaderboardComponent implements OnInit, OnDestroy {
    */
   getHoleComplete(participant: GroupParticipant): number {
     let complete = 0;
-    const holeScores = participant.holeScores;
-    if (holeScores) {
+    if (participant.holeScores) {
       participant.holeScores.forEach(holeScore => {
         if (holeScore.id) {
           complete++;

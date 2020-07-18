@@ -22,9 +22,9 @@
     <div class="col-4 pr-0 pl-0 text-center">
         <div class="col-titles">Score</div>
         <div class="result-rows" *ngFor="let participant of group.groupParticipants">
-            <button class="score-btns" (click)="changeScore(participant, -1)" color="primary" mat-raised-button>-</button>
+            <button class="score-btns" [disabled]="hasOfficialScores(participant)" (click)="changeScore(participant, -1)" color="primary" mat-raised-button>-</button>
             <div class="ml-3 mr-3 scores">{{ getHoleScore(participant, selectedHole) }}</div>
-            <button class="score-btns" (click)="changeScore(participant, 1)" color="primary" mat-raised-button>+</button>
+            <button class="score-btns" [disabled]="hasOfficialScores(participant)" (click)="changeScore(participant, 1)" color="primary" mat-raised-button>+</button>
         </div>
     </div>
     <div class="col-4 pl-0 text-center">
