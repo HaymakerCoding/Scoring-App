@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, QueryList, ViewChildren, ElementRef, TemplateRef } from '@angular/core';
+import { Component, OnInit, OnDestroy, QueryList, ViewChildren, ElementRef, TemplateRef, ɵCompiler_compileModuleSync__POST_R3__ } from '@angular/core';
 import { GroupService } from '../services/group.service';
 import { ActivatedRoute, Params } from '@angular/router';
 import { EventService } from '../services/event.service';
@@ -11,6 +11,7 @@ import { HoleScore } from '../models/HoleScore';
 import { MatTableDataSource } from '@angular/material/table';
 import { MatDialogRef, MatDialog } from '@angular/material/dialog';
 import { MatSnackBar } from '@angular/material/snack-bar';
+import { Season } from '../models/Season';
 
 /**
  * Scoring page for 'Admins'.
@@ -28,6 +29,7 @@ export class AdminScoringComponent implements OnInit, OnDestroy {
   eventId: string;
   eventTypeId: string;
   event: Event;
+  events: Event[] = [];
   loadingPercent: number;
   groups: Group[];
   scorecard: Scorecard;
@@ -39,6 +41,7 @@ export class AdminScoringComponent implements OnInit, OnDestroy {
   divisionParticipants: GroupParticipant[];
   dialogRef: MatDialogRef<any>;
   @ViewChildren('scoreInputs') scoreInputs: QueryList<any>;
+  season: Season;
 
   constructor(
     private eventService: EventService,
@@ -65,15 +68,36 @@ export class AdminScoringComponent implements OnInit, OnDestroy {
       this.eventTypeId = params.eventTypeId;
       this.eventId = params.eventId;
       this.setLoadingPercent(10);
-      this.getEvent(this.eventId);
+      this.getCurrentSeason();
     }));
   }
 
-  getEvent(eventId: string) {
-    this.subscriptions.push(this.eventService.get(eventId).subscribe(response => {
+  /**
+   * Get the tournaments Current Season by year
+   */
+  getCurrentSeason() {
+    const year = new Date().getFullYear();
+    this.subscriptions.push(this.eventService.getSeason(this.eventTypeId.toString(), year.toString()).subscribe(response => {
       if (response.status === 200) {
-        this.event = response.payload;
+        this.season = response.payload;
+        this.setLoadingPercent(20);
+        this.getEvents();
+      } else {
+        console.error(response);
+      }
+    }));
+  }
+
+  getEvents() {
+    this.subscriptions.push(this.eventService.getAllEvents(this.season).subscribe(response => {
+      if (response.status === 200) {
+        this.events = response.payload;
         this.setLoadingPercent(40);
+        if (this.eventId) {
+          this.event = this.events.find(x => +x.id === +this.eventId);
+        } else {
+          this.event = this.events[0];
+        }
         this.getScorecard();
       } else {
         console.error(response);
@@ -136,7 +160,7 @@ export class AdminScoringComponent implements OnInit, OnDestroy {
    * Get all groups/participants for the event
    */
   getGroups() {
-    this.subscriptions.push(this.groupService.getAll(this.eventId, this.eventTypeId).subscribe(response => {
+    this.subscriptions.push(this.groupService.getAll(this.event.id.toString(), this.eventTypeId).subscribe(response => {
       if (response.status === 200) {
         this.groups = response.payload;
         this.checkScores();
@@ -243,6 +267,8 @@ export class AdminScoringComponent implements OnInit, OnDestroy {
         this.close();
         this.snackbar.open('Scores are official!', '', { duration: 1100 });
         participant.holeScores.forEach(x => x.official = 1);
+      } else if (response.status === 509 ) {
+        this.snackbar.open('Invalid password', 'dismiss');
       } else {
         console.error(response);
       }
@@ -340,11 +366,16 @@ export class AdminScoringComponent implements OnInit, OnDestroy {
    */
   hasOfficialScores(participant: GroupParticipant) {
     let offical = true;
-    participant.holeScores.forEach(x => {
-      if (+x.official === 0) {
-        offical = false;
-      }
-    });
+    const holeScores = participant.holeScores;
+    if (holeScores.length < 1) {
+      return false;
+    } else {
+      holeScores.forEach(x => {
+        if (+x.official === 0) {
+          offical = false;
+        }
+      });
+    }
     return offical;
   }
 
@@ -434,6 +465,18 @@ export class AdminScoringComponent implements OnInit, OnDestroy {
         }
       }));
     }
+  }
+
+  onEventSelected() {
+    this.setLoadingPercent(20);
+    this.columns = ['name'];
+    this.holeColumns = [];
+    this.parColumns = [];
+    this.divisionSelected = null;
+    this.groups = [];
+    this.divisionParticipants = [];
+    this.getScorecard();
+
   }
 
 

@@ -19,7 +19,7 @@ const routes: Routes = [
   { path: 'slammer-tour/pick-date', component: SlammerPickDateComponent , canActivate: [AuthGuardService]},
   { path: 'slammer-tour/scoring/:id', component: SlammerScoringComponent, canActivate: [AuthGuardService]},
   { path: 'slammer-tour/all-scores/:id', component: AllScoresComponent, canActivate: [AuthGuardService]},
-  { path: '', pathMatch: 'full', redirectTo: 'home'}
+  { path: '**', pathMatch: 'full', redirectTo: 'home'}
 ];
 
 @NgModule({
