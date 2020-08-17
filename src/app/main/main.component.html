@@ -19,7 +19,7 @@
 
         <app-hole-by-hole *ngIf="currentScreen === 'Enter Scores'" [scorecard]="scorecard" [event]="event"></app-hole-by-hole>
         <app-summary *ngIf="currentScreen === 'Scores'" [scorecard]="scorecard" [event]="event"></app-summary>
-        <app-leaderboard *ngIf="currentScreen === 'Leaderboard'" [eventTypeId]="eventTypeId" [scorecard]="scorecard" [event]="event"></app-leaderboard>
+        <app-leaderboard *ngIf="currentScreen === 'Leaderboard'" [eventTypeId]="eventTypeId" [events]="events" [scorecard]="scorecard" [event]="event"></app-leaderboard>
 
         <div style="width:100%; display: flex; justify-content: center; align-items: center; padding-top:10px;">
             <mat-button-toggle-group style="margin: auto;" [(ngModel)]="currentScreen" name="screenToggles">

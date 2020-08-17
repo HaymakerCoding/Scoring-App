@@ -16,7 +16,8 @@ export class GroupParticipant {
       public divisions: any,
       public holeScores: HoleScore[],
       public teeBlock1id: number,
-      public score: number
+      public score: number,
+      public totalScore: number, // all rounds combined as total
   ) {}
 
 }

@@ -8,6 +8,7 @@ import { GroupService } from '../services/group.service';
 import { Scorecard } from '../models/Scorecard';
 import { GroupParticipant } from '../models/GroupParticipant';
 import { DivisionService } from '../services/division.service';
+import { Season } from '../models/Season';
 
 /**
  * Main screen for scoring for ALL event types
@@ -25,12 +26,14 @@ export class MainComponent implements OnInit, OnDestroy {
   eventId: string;
   eventTypeId: string;
   event: Event;
+  events: Event[];
   loadingPercent: number;
   group: Group;
   scorecard: Scorecard;
   scoreInitialized: number;
   screens: Screen[] = [Screen.ENTERSCORES, Screen.SCORES, Screen.LEADERBOARD];
   currentScreen: Screen;
+  season: Season;
 
   constructor(
     private eventService: EventService,
@@ -63,11 +66,43 @@ export class MainComponent implements OnInit, OnDestroy {
     }));
   }
 
+  /**
+   * Get the event focused on scoring for
+   * @param eventId 
+   */
   getEvent(eventId: string) {
     this.subscriptions.push(this.eventService.get(eventId).subscribe(response => {
       if (response.status === 200) {
         this.event = response.payload;
         this.setLoadingPercent(40);
+        this.getSeason();
+      } else {
+        console.error(response);
+      }
+    }));
+  }
+
+  getSeason() {
+    const year = new Date().getFullYear();
+    this.subscriptions.push(this.eventService.getSeason(this.eventTypeId, year.toString()).subscribe(response => {
+      if (response.status === 200) {
+        this.season = response.payload
+        this.setLoadingPercent(50);
+        this.getEevents();
+      } else {
+        console.error(response);
+      }
+    }));
+  }
+
+  /**
+   * Get all events in the tournament. For total scoring of all rounds(events)
+   */
+  getEevents() {
+    this.subscriptions.push(this.eventService.getAllEvents(this.season).subscribe(response => {
+      if (response.status === 200) {
+        this.events = response.payload;
+        this.setLoadingPercent(60);
         this.getUsersGroup();
       } else {
         console.error(response);
@@ -83,7 +118,7 @@ export class MainComponent implements OnInit, OnDestroy {
       if (response.status === 200) {
         this.group = response.payload;
         this.groupService.setGroup(this.group);
-        this.setLoadingPercent(60);
+        this.setLoadingPercent(70);
         this.getUsersDivision();
       } else {
         console.error(response);
@@ -95,7 +130,7 @@ export class MainComponent implements OnInit, OnDestroy {
     this.subscriptions.push(this.divisionService.getUsersDivisionFromServer(this.eventTypeId).subscribe(response => {
       if (response.status === 200) {
         this.divisionService.setUsersDivision(response.payload);
-        this.setLoadingPercent(70);
+        this.setLoadingPercent(80);
         this.getScorecard();
       } else {
         console.error(response);
@@ -110,7 +145,7 @@ export class MainComponent implements OnInit, OnDestroy {
     this.subscriptions.push(this.eventService.getScorecard(this.event.scorecardId.toString()).subscribe(response => {
       if (response.status === 200) {
         this.scorecard = response.payload;
-        this.setLoadingPercent(80);
+        this.setLoadingPercent(90);
         this.checkScores();
       } else {
         console.error(response);

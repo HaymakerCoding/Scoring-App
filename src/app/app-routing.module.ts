@@ -8,7 +8,7 @@ import { SlammerScoringComponent } from './slammer-scoring/slammer-scoring.compo
 import { AllScoresComponent } from './all-scores/all-scores.component';
 import { MainComponent } from './main/main.component';
 import { AdminScoringComponent } from './admin-scoring/admin-scoring.component';
-
+import { ErrorPageComponent } from './error-page/error-page.component';
 
 const routes: Routes = [
   { path: 'home', component: HomeComponent, canActivate: [AuthGuardService] },
@@ -19,6 +19,8 @@ const routes: Routes = [
   { path: 'slammer-tour/pick-date', component: SlammerPickDateComponent , canActivate: [AuthGuardService]},
   { path: 'slammer-tour/scoring/:id', component: SlammerScoringComponent, canActivate: [AuthGuardService]},
   { path: 'slammer-tour/all-scores/:id', component: AllScoresComponent, canActivate: [AuthGuardService]},
+
+  { path: 'error', component: ErrorPageComponent },
   { path: '**', pathMatch: 'full', redirectTo: 'home'}
 ];
 

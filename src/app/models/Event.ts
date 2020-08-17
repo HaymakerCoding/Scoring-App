@@ -1,3 +1,6 @@
+import { GroupParticipant } from './GroupParticipant';
+import { Scorecard } from './Scorecard';
+import { Group } from './Group';
 
 /**
  * An event. belongs to a season which belongs to an event type
@@ -15,6 +18,9 @@ export class Event {
       public eventTime: any,
       public qualifyingRound: QualifyingRound,
       public scorecardId: number,
+      public groups: Group[],
+      public divisionParticipants: GroupParticipant[],
+      public scorecard: Scorecard
 
   ) {}
 

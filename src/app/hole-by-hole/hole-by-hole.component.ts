@@ -79,8 +79,23 @@ export class HoleByHoleComponent implements OnInit, OnDestroy {
     });
   }
 
+  /**
+   * ISSSUE !!!!!H ERE!!!!!!!
+   * @param holeNum 
+   * @param teeBlockId 
+   */
   getTeeBlockHoleId(holeNum: number, teeBlockId: number) {
-    return this.scorecard.scorecardHoles.find(x => +x.no === +holeNum).teeBlocks.find(block => +block.id === +teeBlockId).teeBlockHoleId;
+    const scorecardHoles = this.scorecard.scorecardHoles.find(x => +x.no === +holeNum)
+    let teeBlockHole =  scorecardHoles.teeBlocks.find(block => +block.id === +teeBlockId);
+    if (!teeBlockHole) {
+      if (+teeBlockId === 7) {
+        return scorecardHoles.teeBlocks.find(block => +block.id === 14).teeBlockHoleId;
+      } else {
+        return scorecardHoles.teeBlocks.find(block => +block.id === 7).teeBlockHoleId;
+      }
+    } else {
+      return teeBlockHole.teeBlockHoleId;
+    }
   }
 
   /**

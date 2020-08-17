@@ -227,7 +227,9 @@ export class AdminScoringComponent implements OnInit, OnDestroy {
         participant.holeScores.push(new HoleScore(null, participant.scoreId, this.getTeeBlockHoleId(+hole.no, this.getDefaultTeeBlockId()), +hole.no, null, 0, false));
       }
     })
-    console.log(participant);
+    participant.holeScores.sort((a, b) => {
+      return +a.hole - +b.hole;
+    });
     this.dialogRef = this.dialog.open(dialog, { data: participant, autoFocus: false });
   }
 
@@ -328,13 +330,18 @@ export class AdminScoringComponent implements OnInit, OnDestroy {
    * @param participant Group Participant
    */
   initScores(participants: GroupParticipant[]) {
-    this.subscriptions.push(this.groupService.initMultipleScores(participants, this.event.scorecardId, this.getDefaultTeeBlockId()).subscribe(response => {
-      if (response.status === 201) {
-        participants = response.payload
-      } else {
-        console.error(response);
-      }
-    }));
+    const teeBlock = this.getDefaultTeeBlockId();
+    if (teeBlock) {
+      this.subscriptions.push(this.groupService.initMultipleScores(participants, this.event.scorecardId, teeBlock).subscribe(response => {
+        if (response.status === 201) {
+          participants = response.payload
+        } else {
+          console.error(response);
+        }
+      }));
+    } else {
+      console.error('Error, no default tee block found on the scorecard');
+    }
   }
 
   /**
@@ -347,7 +354,7 @@ export class AdminScoringComponent implements OnInit, OnDestroy {
     if (defaultTeeBlock) {
       return defaultTeeBlock;
     } else {
-      console.error('Error, no default tee block found on the scorecard');
+      return null;
     }
   }
 

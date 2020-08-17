@@ -4,6 +4,10 @@
     border-bottom:1px solid;
     padding-bottom: 5px;
     color:#107896;
+    display: flex;
+    justify-content: center;
+    align-items: flex-end;
+    height:60px;
 }
 
 @media only screen and (max-width:800px) {

@@ -6,26 +6,26 @@
     <h1 class="text-center">{{ usersDivision.name }}</h1>
     <h2 class="text-center">Leaderboard</h2>
 
-    <div class="row mt-3">
+    <div class="row mt-2">
         <div class="col-6">
-            <h3 class="headings" style="margin-top: 18px;">Competitor</h3>
+            <h3 class="headings">Competitor</h3>
         </div>
         <div class="col-3 text-center">
             <h3 class="headings">Holes<br>Complete</h3>
         </div>
         <div class="col-3 text-center">
-            <h3 class="headings" style="margin-top: 18px;">Score</h3>
+            <h3 class="headings">Score</h3>
         </div>
     </div>
-    <div *ngFor="let participant of divisionParticipants; let i = index" class="row">
+    <div *ngFor="let participant of displayParticipants; let i = index" class="row">
         <div class="col-6">
             <div>{{ (i+1) + '. ' + participant.fullName }}</div>
         </div>
         <div class="col-3 text-center">
-            <div>{{ getHoleComplete(participant) }}</div>
+            <div>{{ getTotalHolesComplete(participant) }}</div>
         </div>
         <div class="col-3 text-center">
-            <div>{{ participant.score > 0 ? '+' + participant.score : participant.score === 0 ? 'Even' : participant.score }}</div>
+            <div>{{ participant.totalScore > 0 ? '+' + participant.totalScore : participant.totalScore === 0 ? 'Even' : participant.totalScore }}</div>
         </div>
     </div>
 </div>
