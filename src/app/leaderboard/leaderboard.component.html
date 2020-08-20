@@ -17,15 +17,15 @@
             <h3 class="headings">Score</h3>
         </div>
     </div>
-    <div *ngFor="let participant of displayParticipants; let i = index" class="row">
+    <div *ngFor="let participant of getParticipants(); let i = index" class="row">
         <div class="col-6">
-            <div>{{ (i+1) + '. ' + participant.fullName }}</div>
+            <div>{{ (i+1) + '. ' + getParticipantNames(participant) }}</div>
         </div>
         <div class="col-3 text-center">
             <div>{{ getTotalHolesComplete(participant) }}</div>
         </div>
         <div class="col-3 text-center">
-            <div>{{ participant.totalScore > 0 ? '+' + participant.totalScore : participant.totalScore === 0 ? 'Even' : participant.totalScore }}</div>
+            <div>{{ participant.score > 0 ? '+' + participant.score : participant.score === 0 ? 'Even' : participant.score}}</div>
         </div>
     </div>
 </div>

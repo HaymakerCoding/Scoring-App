@@ -2,17 +2,18 @@ import { Component, OnInit, OnDestroy, QueryList, ViewChildren, ElementRef, Temp
 import { GroupService } from '../services/group.service';
 import { ActivatedRoute, Params } from '@angular/router';
 import { EventService } from '../services/event.service';
-import { Group } from '../models/Group';
 import { Subscription } from 'rxjs';
 import { Event } from '../models/Event';
 import { Scorecard } from '../models/Scorecard';
-import { GroupParticipant } from '../models/GroupParticipant';
 import { HoleScore } from '../models/HoleScore';
 import { MatTableDataSource } from '@angular/material/table';
 import { MatDialogRef, MatDialog } from '@angular/material/dialog';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { Season } from '../models/Season';
 import { ScoringType } from '../main/main.component';
+import { Individual } from '../models/Individual';
+import { Team } from '../models/Team';
+import { EventParticipant } from '../models/EventParticipant';
 
 /**
  * Scoring page for 'Admins'.
@@ -32,20 +33,21 @@ export class AdminScoringComponent implements OnInit, OnDestroy {
   event: Event;
   events: Event[] = [];
   loadingPercent: number;
-  groups: Group[];
+
   scorecard: Scorecard;
   columns: string[] = ['name'];
   holeColumns = [];
   parColumns = [];
   divisions: any[];
   divisionSelected;
-  divisionParticipants: GroupParticipant[];
   dialogRef: MatDialogRef<any>;
   @ViewChildren('scoreInputs') scoreInputs: QueryList<any>;
   season: Season;
   private password: string;
   validPassword: boolean;
   scoringType: ScoringType;
+  indivduals: Individual[];
+  teams: Team[]
 
   constructor(
     private eventService: EventService,
@@ -68,6 +70,16 @@ export class AdminScoringComponent implements OnInit, OnDestroy {
     this.loadingPercent = percent;
   }
 
+  getRouteParams() {
+    this.subscriptions.push(this.activatedRoute.params.subscribe(( params: Params ) => {
+      this.eventTypeId = params.eventTypeId;
+      this.eventId = params.eventId;
+      this.setScoringType();
+      this.setLoadingPercent(10);
+      this.getCurrentSeason();
+    }));
+  }
+
   setScoringType() {
     switch (+this.eventTypeId) {
       case 1: {
@@ -83,16 +95,6 @@ export class AdminScoringComponent implements OnInit, OnDestroy {
         break;
       }
     }
-  }
-
-  getRouteParams() {
-    this.subscriptions.push(this.activatedRoute.params.subscribe(( params: Params ) => {
-      this.eventTypeId = params.eventTypeId;
-      this.eventId = params.eventId;
-      this.setScoringType();
-      this.setLoadingPercent(10);
-      this.getCurrentSeason();
-    }));
   }
 
   /**
@@ -136,6 +138,7 @@ export class AdminScoringComponent implements OnInit, OnDestroy {
     this.subscriptions.push(this.eventService.getScorecard(this.event.scorecardId.toString()).subscribe(response => {
       if (response.status === 200) {
         this.scorecard = response.payload;
+        console.log(this.scorecard);
         this.setColumns();
         this.setLoadingPercent(100);
       } else {
@@ -165,19 +168,24 @@ export class AdminScoringComponent implements OnInit, OnDestroy {
     
   }
 
-  /**
-   * Get all groups/participants for the event
-   */
-  getGroups() {
-    this.subscriptions.push(this.groupService.getAll(this.event.id.toString(), this.scoringType).subscribe(response => {
+  getEventParticipants() {
+    this.subscriptions.push(this.eventService.getParticipantsByDivision(this.event.id.toString(), this.divisionSelected.competitionId.toString(), this.scoringType).subscribe(response => {
       if (response.status === 200) {
-        this.groups = response.payload;
-        console.log(this.groups);
-        this.filterParticipantsByDivision();
+        if (this.scoringType === ScoringType.TEAM) {
+          this.teams = response.payload;
+          console.log(this.teams);
+        } else {
+          this.indivduals = response.payload;
+        }
+        this.checkScores();
       } else {
         console.error(response);
       }
     }));
+  }
+
+  getPlayersNames(participant) {
+    return this.scoringType === ScoringType.TEAM ? participant.teamMembers[0].fullName + ' & ' + participant.teamMembers[1].fullName : participant.fullName;
   }
 
   /**
@@ -185,50 +193,27 @@ export class AdminScoringComponent implements OnInit, OnDestroy {
    */
   onDivisionSelected() {
     this.setLoadingPercent(20);
-    this.getGroups();
+    this.getEventParticipants();
   }
-
-  /**
-   * Filter all groups into a list of participants with division matching the selected division
-   */
-  filterParticipantsByDivision() {
-    this.divisionParticipants = [];
-    this.groups.forEach(group => {
-      group.groupParticipants.forEach(participant => {
-        if (this.scoringType === ScoringType.INDIVIDUAL) {
-          if (participant.divisions[0].id === this.divisionSelected.id) {
-            this.divisionParticipants.push(participant);
-          }
-        } else {
-          
-        }
-      });
-    });
-    //now sort alpha by name
-    this.divisionParticipants.sort((a, b) => {
-      return a.fullName > b.fullName ? 1: a.fullName < b.fullName ? -1 : 0;
-    });
-    this.setLoadingPercent(100);
-  }
-
+  
   /**
    * Get score on current hole for a participant
    * @param participant Group participant
    */
-  getHoleScore(participant: GroupParticipant, hole: number): number {
+  getHoleScore(participant: EventParticipant, hole: number): number {
     const holeScore: HoleScore = participant.holeScores.find(x => +x.hole === +hole);
     return holeScore && holeScore.id ? holeScore.score : null;
   }
 
-  getDatasource(data) {
-    return new MatTableDataSource(data);
+  getDatasource() {
+    return this.scoringType === ScoringType.TEAM ? new MatTableDataSource(this.teams) : new MatTableDataSource(this.indivduals);
   }
 
-  editScores(participant: GroupParticipant, dialog) {
+  editScores(participant: EventParticipant, dialog) {
     this.dialogRef = this.dialog.open(dialog, { data: participant, autoFocus: false });
   }
 
-  showEdit(participant: GroupParticipant, dialog) {
+  showEdit(participant: EventParticipant, dialog) {
     this.close();
     this.scorecard.scorecardHoles.forEach(hole => {
       const holeScore = participant.holeScores.find(x => +x.hole === +hole.no);
@@ -252,7 +237,7 @@ export class AdminScoringComponent implements OnInit, OnDestroy {
    * @param participant Group participant
    * @param password User entered password
    */
-  makeScoresOfficial(participant: GroupParticipant) {
+  makeScoresOfficial(participant: EventParticipant) {
     if (!this.password || this.password === '') {
       this.validPassword = false;
     } else {
@@ -276,8 +261,8 @@ export class AdminScoringComponent implements OnInit, OnDestroy {
    * @param participant Group Participant
    * @param password Password entered by user to verify access
    */
-  setOfficial(participant: GroupParticipant, password: string) {
-    this.subscriptions.push(this.groupService.makeScoresOfficial(participant, password, this.event.id).subscribe(response => {
+  setOfficial(participant: EventParticipant, password: string) {
+    this.subscriptions.push(this.eventService.makeScoresOfficial(participant, password, this.event.id).subscribe(response => {
       if (response.status === 200) {
         this.close();
         this.snackbar.open('Scores are official!', '', { duration: 1100 });
@@ -296,17 +281,18 @@ export class AdminScoringComponent implements OnInit, OnDestroy {
 
   /**
    * Persist a participants scores
-   * @param participant Group Participant
+   * @param participant Event Participant
    * @param password User entered password, verifies access rights
    */
-  saveScores(participant: GroupParticipant) {
+  saveScores(participant: EventParticipant) {
     if (!this.password || this.password === '') {
       this.validPassword = false;
     } else {
-      this.groupService.saveParticipantScoreByPassword(participant, this.password, this.event.id).subscribe(response => {
+      this.eventService.saveParticipantScoreByPassword(participant, this.password, this.event.id).subscribe(response => {
         if (response.status === 200) {
           this.close();
-          participant = response.payload;
+          this.setLoadingPercent(25);
+          this.getEventParticipants();
           this.snackbar.open('Scores saved!', '', { duration: 1100 });
         } else if (response.status === 509 ) {
           this.snackbar.open('Invalid password', 'dismiss');
@@ -319,25 +305,37 @@ export class AdminScoringComponent implements OnInit, OnDestroy {
 
   /**
    * Check if each user in group has scores. If score id is null then we create an initial score record for the participant
+   */
   checkScores() {
-    const participantsToInit: GroupParticipant[] = [];
-    this.groups.forEach(group => {
-      group.groupParticipants.forEach(participant => {
+    const participantsToInit: EventParticipant[] = [];
+    if (this.scoringType === ScoringType.TEAM) {
+      this.teams.forEach(participant => {
         if (participant.scoreId === null) {
           participantsToInit.push(participant);
         } 
       });
-    });
+    } else {
+      this.indivduals.forEach(participant => {
+        if (participant.scoreId === null) {
+          participantsToInit.push(participant);
+        } 
+      });
+    }
     if (participantsToInit.length > 0) {
       this.initScores(participantsToInit);
+    } else {
+      this.setLoadingPercent(100);
     }
   }
-  initScores(participants: GroupParticipant[]) {
+  
+  initScores(participants: EventParticipant[]) {
+    this.setLoadingPercent(25);
+    console.log('initalizing scores for ' + participants.length + ' participants');
     const teeBlock = this.getDefaultTeeBlockId();
     if (teeBlock) {
-      this.subscriptions.push(this.groupService.initMultipleScores(participants, this.event.scorecardId, teeBlock).subscribe(response => {
+      this.subscriptions.push(this.eventService.initMultipleScores(participants, this.event.scorecardId, teeBlock).subscribe(response => {
         if (response.status === 201) {
-          participants = response.payload
+          this.getEventParticipants();
         } else {
           console.error(response);
         }
@@ -346,7 +344,6 @@ export class AdminScoringComponent implements OnInit, OnDestroy {
       console.error('Error, no default tee block found on the scorecard');
     }
   }
-  */
 
   /**
    * Temporary, get the teeblock id from a teeblock set on the first array of teeblocks from the scorecard.
@@ -379,7 +376,7 @@ export class AdminScoringComponent implements OnInit, OnDestroy {
    * Check if the participants scores are flagged as official
    * @param participant Group Participant
    */
-  hasOfficialScores(participant: GroupParticipant) {
+  hasOfficialScores(participant: EventParticipant) {
     let offical = true;
     const holeScores = participant.holeScores;
     if (holeScores.length < 1) {
@@ -410,13 +407,16 @@ export class AdminScoringComponent implements OnInit, OnDestroy {
    * Compare their hole scores total to toal pars.
    * @param participant Grooup Participant
    */
-  getScore(participant: GroupParticipant): number {
+  getScore(participant: EventParticipant): number {
     let targetPar = 0;
     let usersScore = 0;
     participant.holeScores.forEach(holeScore => {
       if (holeScore.id) {
         usersScore += +holeScore.score;
-        targetPar += +this.scorecard.scorecardHoles.find(x => +x.no === +holeScore.hole).par;
+        const hole = this.scorecard.scorecardHoles.find(x => +x.no === +holeScore.hole);
+        if (hole) {
+          targetPar += +this.scorecard.scorecardHoles.find(x => +x.no === +holeScore.hole).par;
+        }
       }
     });
     return +usersScore - +targetPar;
@@ -428,7 +428,7 @@ export class AdminScoringComponent implements OnInit, OnDestroy {
    */
   checkNumIssues(): number {
     let issues = 0;
-    this.divisionParticipants.forEach(participant => {
+    this.teams.forEach(participant => {
       this.scorecard.scorecardHoles.forEach(hole => {
         const found = participant.holeScores.filter(x => +x.teeBlockHoleId === +hole.teeBlockHoles[0].holeId);
         if (found.length > 1) {
@@ -445,7 +445,7 @@ export class AdminScoringComponent implements OnInit, OnDestroy {
    */
   showProblems(dialog: TemplateRef<any>) {
     const problems: Problem[] = [];
-    this.divisionParticipants.forEach(participant => {
+    this.teams.forEach(participant => {
       this.scorecard.scorecardHoles.forEach(hole => {
         const found: HoleScore[] = participant.holeScores.filter(x => +x.teeBlockHoleId === +hole.teeBlockHoles[0].holeId);
         if (found.length > 1) {
@@ -467,7 +467,7 @@ export class AdminScoringComponent implements OnInit, OnDestroy {
    * @param holeScore Hole Score to remove
    * @param participant Group participant
    */
-  deleteDuplicateScore(holeScore: HoleScore, participant: GroupParticipant) {
+  deleteDuplicateScore(holeScore: HoleScore, participant: EventParticipant) {
     if (confirm('Are you sure you want to permanently delete this player score?') === true) {
       this.setLoadingPercent(20);
       this.close();
@@ -501,8 +501,8 @@ export class AdminScoringComponent implements OnInit, OnDestroy {
     this.holeColumns = [];
     this.parColumns = [];
     this.divisionSelected = null;
-    this.groups = [];
-    this.divisionParticipants = [];
+    this.teams = [];
+    this.indivduals = [];
     this.validPassword = false;
     this.password = null;
     this.getScorecard();
@@ -523,6 +523,6 @@ export class AdminScoringComponent implements OnInit, OnDestroy {
 }
 
 interface Problem {
-  participant: GroupParticipant;
+  participant: EventParticipant;
   holeScores: HoleScore[]
 }

@@ -20,7 +20,7 @@
         <section>
             <app-hole-by-hole *ngIf="currentScreen === 'Enter Scores'" [scoringType]="scoringType" [scorecard]="scorecard" [event]="event"></app-hole-by-hole>
             <app-summary *ngIf="currentScreen === 'Scores'" [scoringType]="scoringType" [scorecard]="scorecard" [event]="event"></app-summary>
-            <app-leaderboard *ngIf="currentScreen === 'Leaderboard'" [eventTypeId]="eventTypeId" [events]="events" [scorecard]="scorecard" [event]="event"></app-leaderboard>
+            <app-leaderboard *ngIf="currentScreen === 'Leaderboard'" [scoringType]="scoringType" [eventTypeId]="eventTypeId" [events]="events" [scorecard]="scorecard" [event]="event"></app-leaderboard>
         </section>
         <section>
             <div style="width:100%; display: flex; justify-content: center; align-items: center; padding-top:10px;">

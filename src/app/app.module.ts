@@ -50,6 +50,7 @@ import { LeaderboardComponent } from './leaderboard/leaderboard.component';
 import { AdminScoringComponent } from './admin-scoring/admin-scoring.component';
 import { AdminScoringEditComponent } from './admin-scoring-edit/admin-scoring-edit.component';
 import { ErrorPageComponent } from './error-page/error-page.component';
+import { LogoutComponent } from './logout/logout.component';
 
 @NgModule({
   declarations: [
@@ -68,7 +69,8 @@ import { ErrorPageComponent } from './error-page/error-page.component';
     LeaderboardComponent,
     AdminScoringComponent,
     AdminScoringEditComponent,
-    ErrorPageComponent
+    ErrorPageComponent,
+    LogoutComponent
   ],
   imports: [
     BrowserModule,

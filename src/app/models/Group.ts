@@ -14,8 +14,7 @@ export class Group {
       public eventId: number,
       public teeTime: any,
       public startHole: number,
-      public groupParticipants: GroupParticipant[],
-      public teamParticipants: Team[]
+      public groupParticipants: GroupParticipant[]
   ) {}
 
 }

@@ -105,7 +105,8 @@ export class AuthService {
     this.setLoggedIn(false);
     this.userNames = null;
     localStorage.clear();
-    this.router.navigate(['/']);
+    sessionStorage.clear();
+    this.router.navigate(['/login']);
   }
 }
 

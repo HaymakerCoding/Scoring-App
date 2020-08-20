@@ -9,6 +9,7 @@ import { Scorecard } from '../models/Scorecard';
 import { DivisionService } from '../services/division.service';
 import { Season } from '../models/Season';
 import { MatSnackBar } from '@angular/material/snack-bar';
+import { GroupParticipant } from '../models/GroupParticipant';
 
 /**
  * Main screen for scoring for ALL event types
@@ -139,7 +140,6 @@ export class MainComponent implements OnInit, OnDestroy {
     this.subscriptions.push(this.groupService.getUsersGroup(this.eventId, type).subscribe(response => {
       if (response.status === 200) {
         this.group = response.payload;
-        console.log(this.group);
         if (!this.group.id) {
           this.snackbar.open('This user does not have a group for this event.', 'dismiss');
         } else {
@@ -172,7 +172,8 @@ export class MainComponent implements OnInit, OnDestroy {
     this.subscriptions.push(this.eventService.getScorecard(this.event.scorecardId.toString()).subscribe(response => {
       if (response.status === 200) {
         this.scorecard = response.payload;
-        this.setLoadingPercent(100);
+        this.setLoadingPercent(90);
+        this.checkScores();
       } else {
         console.error(response);
       }
@@ -202,6 +203,41 @@ export class MainComponent implements OnInit, OnDestroy {
       case 1: return './assets/scramble2.png';
       case 3: return 'https://clubeg.golf/Images/Logos/ottawacitizenchampionship300.png';
       default: return 'https://clubeg.golf/Images/Logos/clubeg-golf200.png';
+    }
+  }
+
+  /** 
+   * Check if each user in group has scores. If score id is null then we create an initial score record for the participant
+   */
+  checkScores() {
+    const participantsToInit: GroupParticipant[] = [];
+    this.group.groupParticipants.forEach(participant => {
+      console.log(participant.scoreId);
+      if (participant.scoreId === null) {
+        participantsToInit.push(participant);
+      }
+    });
+    if (participantsToInit.length > 0) {
+      this.initScores(participantsToInit);
+    } else {
+      this.setLoadingPercent(100);
+    }
+  }
+
+  initScores(participants: GroupParticipant[]) {
+    const teeBlock = this.getDefaultTeeBlockId();
+    if (teeBlock) {
+      this.subscriptions.push(this.groupService.initMultipleScores(participants, this.event.scorecardId, teeBlock).subscribe(response => {
+        if (response.status === 201) {
+          participants = response.payload
+          console.log(response);
+          this.setLoadingPercent(100);
+        } else {
+          console.error(response);
+        }
+      }));
+    } else {
+      console.error('Error, no default tee block found on the scorecard');
     }
   }
 

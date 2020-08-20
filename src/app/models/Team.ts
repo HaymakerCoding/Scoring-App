@@ -1,17 +1,29 @@
+
 import { HoleScore } from './HoleScore';
-import { GroupParticipant } from './GroupParticipant';
+import { Individual } from './Individual';
+import { EventParticipant } from './EventParticipant';
+import { Hole } from './Hole';
 
 /**
- * A team participant in a group of golf
+ * A team participant in a golf event
  * @author Malcolm Roy
  */
-export class Team {
+export class Team extends EventParticipant  {
 
+  
   constructor(
       public teamId: number,
+      public teamParticipantId: number,
+      public groupParticipantId: number,
+      public teamMembers: Individual[],
       public holeScores: HoleScore[],
-      public teamMembers: GroupParticipant[], // all rounds combined as total
-  ) {}
+      public score: number,
+      public scoreId: number
+  ) {
+    super(
+      holeScores, score, scoreId
+    );
+  }
 
 }
 

@@ -7,7 +7,7 @@ import { HoleScore } from './HoleScore';
 export class GroupParticipant {
 
   constructor(
-      public id: number,
+    public id: number,
       public participantId: number,
       public groupId: number,
       public scoreId: number,
@@ -18,6 +18,11 @@ export class GroupParticipant {
       public teeBlock1id: number,
       public score: number,
       public totalScore: number, // all rounds combined as total
+
+      public teamId: number,
+      public groupParticipantId: number,
+      public teamMembers: GroupParticipant[], // all rounds combined as total
+   
   ) {}
 
 }

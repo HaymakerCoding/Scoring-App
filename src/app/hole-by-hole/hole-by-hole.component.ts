@@ -46,6 +46,7 @@ export class HoleByHoleComponent implements OnInit, OnDestroy {
       this.selectedHole = 1;
     }
     this.group = this.groupService.getGroup();
+    console.log(this.group);
     this.initDefaultScores();
   }
 
