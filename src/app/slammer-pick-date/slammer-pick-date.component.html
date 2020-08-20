@@ -1,24 +1,24 @@
-<div class="container pt-4 pb-4">
+<main class="container pt-4 pb-4">
   <div class="inner-container" *ngIf="loadingPercent === 100" >
     
-    <div class="mt-1">
+    <article class="mt-1">
       <h1>Events</h1>
       <br>
       <h6 *ngIf="allEvents.length < 1" class="mt-3">You are not registered for any events</h6>
       <!--ALL EVENTS-->
-      <div *ngFor="let event of allEvents">
+      <article *ngFor="let event of allEvents">
         <div *ngIf="!event.isSlammerEvent" (click)="onEventSelected(event, passwordDialog)" class="eventBoxes mb-2">
           <span class="qualifying-text" *ngIf="event.qualifyingRound">{{ event.qualifyingRound }}</span>
-          <h5 class="dates">{{ event.eventDate | date: 'EE LLL d'}}</h5>
+          <time [dateTime]="event.eventDate" class="dates">{{ event.eventDate | date: 'EE LLL d'}}</time>
           <div class="eventBtns"><span class="fun-text">{{ event.tournamentName  + ': '}}</span>{{ event.courseName}}</div>
         </div>
 
         <div *ngIf="event.isSlammerEvent && event.isSlammerEvent === true" (click)="onSlammerEventSelected(event)" class="eventBoxes mb-2">
-          <h5 class="dates">{{ event.eventDate | date: 'EE LLL d'}}</h5>
+          <time [dateTime]="event.eventDate" class="dates">{{ event.eventDate | date: 'EE LLL d'}}</time>
           <div class="eventBtns"><span class="fun-text">{{ 'Slammer Tour: '}}</span>{{ event.name }}</div>
         </div>
-      </div>
-    </div>
+      </article>
+    </article>
        
   </div>
 
@@ -38,5 +38,5 @@
     </mat-dialog-actions>
   </ng-template>
 
-</div>
+</main>
 

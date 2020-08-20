@@ -7,6 +7,7 @@ import { GroupParticipant } from '../models/GroupParticipant';
 import { HoleScore } from '../models/HoleScore';
 import { GroupService } from '../services/group.service';
 import { MatTableDataSource } from '@angular/material/table';
+import { ScoringType } from '../main/main.component';
 
 @Component({
   selector: 'app-summary',
@@ -17,6 +18,7 @@ export class SummaryComponent implements OnInit {
 
   @Input() scorecard: Scorecard;
   @Input() event: Event;
+  @Input() scoringType: ScoringType;
   group: Group;
   holeColumns = [];
   parColumns = [];

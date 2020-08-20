@@ -1,5 +1,6 @@
 
 import { GroupParticipant } from './GroupParticipant';
+import { Team } from './Team';
 
 /**
  * A group of golfer playing in a league or tournament event.
@@ -13,7 +14,8 @@ export class Group {
       public eventId: number,
       public teeTime: any,
       public startHole: number,
-      public groupParticipants: GroupParticipant[]
+      public groupParticipants: GroupParticipant[],
+      public teamParticipants: Team[]
   ) {}
 
 }

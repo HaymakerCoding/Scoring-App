@@ -5,6 +5,7 @@ import { AuthService } from './auth.service';
 import { GroupParticipant } from '../models/GroupParticipant';
 import { Group } from '../models/Group';
 import { HoleScore } from '../models/HoleScore';
+import { ScoringType } from '../main/main.component';
 
 /**
  * Service to handle the user's group actions.
@@ -41,17 +42,17 @@ export class GroupService {
     return this.currentHole;
   }
 
-  getUsersGroup(eventId: string) {
+  getUsersGroup(eventId: string, type: string) {
     const headers = this.authService.getAuthHeader();
-    const params = new HttpParams().set('eventId', eventId)
+    const params = new HttpParams().set('eventId', eventId).set('type', type);
     return this.http.get<any>('https://clubeg.golf/common/api_REST/v1/clubeg/event/group/get-users-group/index.php',
     { params, headers }).pipe(map(response => {
       return response;
     }));
   }
 
-  getAll(eventId: string, tournamentId: string) {
-    const params = new HttpParams().set('eventId', eventId).set('tournamentId', tournamentId);
+  getAll(eventId: string, type: ScoringType) {
+    const params = new HttpParams().set('eventId', eventId).set('type', type);
     return this.http.get<any>('https://clubeg.golf/common/api_REST/v1/clubeg/event/group/get-all/index.php',
     { params }).pipe(map(response => {
       return response;

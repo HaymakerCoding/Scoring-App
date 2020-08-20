@@ -1,21 +1,23 @@
-<mat-toolbar style="background-image:url('https://clubeg.golf/background.jpg'); z-index:2; height:50px;background-position: bottom; position: relative;">
-  <div class="logo-container">
-    <img src="../assets/logo.png" style="width:65px; margin-top: 3px;" alt="ClubEG">
-  </div>
-  <div class="title scoring fun-text ml-3" style="font-size:18px;">Scoring (v.1.12)
-    <button mat-raised-button color="primary" class="ml-2" (click)="onUserInstall()" *ngIf="deferredPrompt">Install</button>
-  </div>
-  
-  <span class="filler"></span>
-  <mat-icon class="mr-2" (click)="toggleUserMenu()" *ngIf="loggedIn === true">account_box</mat-icon>
-  <div class="user-name user-name-hidden" *ngIf="loggedIn === true && userFullName">{{ userFullName }}</div>
-
-  <div *ngIf="loggedIn === true && showUserMenu === true" style="position:absolute; background-color:white; z-index:2; padding:10px; top:0; border:1px solid lightgray; right:0px; height:250px; width:200px;">
-    <div style="width:100%; height:38px; display:flex; align-items: center; justify-content: center;">
-      <mat-icon (click)="toggleUserMenu()" class="mr-3">account_box</mat-icon>
-      <span class="user-name">{{ userFullName }}</span>
+<header>
+  <mat-toolbar style="background-image:url('https://clubeg.golf/background.jpg'); z-index:2; height:50px;background-position: bottom; position: relative;">
+    <div class="logo-container">
+      <img src="../assets/logo.png" style="width:65px; margin-top: 3px;" alt="ClubEG">
     </div>
-    <hr>
-    <button (click)="logout(); toggleUserMenu()" mat-raised-button style="width:100%; margin-top:5px">Logout</button>
-  </div>
-</mat-toolbar>
+    <div class="title scoring fun-text ml-3" style="font-size:18px;">Scoring (v.1.12)
+      <button mat-raised-button color="primary" class="ml-2" (click)="onUserInstall()" *ngIf="deferredPrompt">Install</button>
+    </div>
+    
+    <span class="filler"></span>
+    <mat-icon class="mr-2" (click)="toggleUserMenu()" *ngIf="loggedIn === true">account_box</mat-icon>
+    <div class="user-name user-name-hidden" *ngIf="loggedIn === true && userFullName">{{ userFullName }}</div>
+
+    <div *ngIf="loggedIn === true && showUserMenu === true" style="position:absolute; background-color:white; z-index:2; padding:10px; top:0; border:1px solid lightgray; right:0px; height:250px; width:200px;">
+      <div style="width:100%; height:38px; display:flex; align-items: center; justify-content: center;">
+        <mat-icon (click)="toggleUserMenu()" class="mr-3">account_box</mat-icon>
+        <span class="user-name">{{ userFullName }}</span>
+      </div>
+      <hr>
+      <button (click)="logout(); toggleUserMenu()" mat-raised-button style="width:100%; margin-top:5px">Logout</button>
+    </div>
+  </mat-toolbar>
+</header>

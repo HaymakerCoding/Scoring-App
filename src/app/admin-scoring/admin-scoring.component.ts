@@ -12,6 +12,7 @@ import { MatTableDataSource } from '@angular/material/table';
 import { MatDialogRef, MatDialog } from '@angular/material/dialog';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { Season } from '../models/Season';
+import { ScoringType } from '../main/main.component';
 
 /**
  * Scoring page for 'Admins'.
@@ -44,6 +45,7 @@ export class AdminScoringComponent implements OnInit, OnDestroy {
   season: Season;
   private password: string;
   validPassword: boolean;
+  scoringType: ScoringType;
 
   constructor(
     private eventService: EventService,
@@ -66,10 +68,28 @@ export class AdminScoringComponent implements OnInit, OnDestroy {
     this.loadingPercent = percent;
   }
 
+  setScoringType() {
+    switch (+this.eventTypeId) {
+      case 1: {
+        this.scoringType = ScoringType.TEAM;
+        break;
+      }
+      case 3: {
+        this.scoringType = ScoringType.INDIVIDUAL;
+        break;
+      }
+      default: {
+        this.snackbar.open('Error - scoring type not set for this event type');
+        break;
+      }
+    }
+  }
+
   getRouteParams() {
     this.subscriptions.push(this.activatedRoute.params.subscribe(( params: Params ) => {
       this.eventTypeId = params.eventTypeId;
       this.eventId = params.eventId;
+      this.setScoringType();
       this.setLoadingPercent(10);
       this.getCurrentSeason();
     }));
@@ -117,8 +137,7 @@ export class AdminScoringComponent implements OnInit, OnDestroy {
       if (response.status === 200) {
         this.scorecard = response.payload;
         this.setColumns();
-        this.setLoadingPercent(60);
-        this.getDivisions();
+        this.setLoadingPercent(100);
       } else {
         console.error(response);
       }
@@ -147,27 +166,13 @@ export class AdminScoringComponent implements OnInit, OnDestroy {
   }
 
   /**
-   * Get all divisions for the tournament
-   */
-  getDivisions() {
-    this.subscriptions.push(this.eventService.getAllDivisions(this.eventTypeId).subscribe(response => {
-      if (response.status === 200) {
-        this.divisions = response.payload;
-        this.setLoadingPercent(100);
-      } else {
-        console.error(response);
-      }
-    }));
-  }
-
-  /**
    * Get all groups/participants for the event
    */
   getGroups() {
-    this.subscriptions.push(this.groupService.getAll(this.event.id.toString(), this.eventTypeId).subscribe(response => {
+    this.subscriptions.push(this.groupService.getAll(this.event.id.toString(), this.scoringType).subscribe(response => {
       if (response.status === 200) {
         this.groups = response.payload;
-        this.checkScores();
+        console.log(this.groups);
         this.filterParticipantsByDivision();
       } else {
         console.error(response);
@@ -190,8 +195,12 @@ export class AdminScoringComponent implements OnInit, OnDestroy {
     this.divisionParticipants = [];
     this.groups.forEach(group => {
       group.groupParticipants.forEach(participant => {
-        if (participant.divisions[0].id === this.divisionSelected.id) {
-          this.divisionParticipants.push(participant);
+        if (this.scoringType === ScoringType.INDIVIDUAL) {
+          if (participant.divisions[0].id === this.divisionSelected.id) {
+            this.divisionParticipants.push(participant);
+          }
+        } else {
+          
         }
       });
     });
@@ -234,7 +243,7 @@ export class AdminScoringComponent implements OnInit, OnDestroy {
   }
 
   getTeeBlockHoleId(holeNum: number, teeBlockId: number) {
-    return this.scorecard.scorecardHoles.find(x => +x.no === +holeNum).teeBlocks.find(block => +block.id === +teeBlockId).teeBlockHoleId;
+    return this.scorecard.scorecardHoles.find(x => +x.no === +holeNum).teeBlockHoles.find(block => +block.teeBlockId === +teeBlockId).id;
   }
 
   /**
@@ -310,7 +319,6 @@ export class AdminScoringComponent implements OnInit, OnDestroy {
 
   /**
    * Check if each user in group has scores. If score id is null then we create an initial score record for the participant
-   */
   checkScores() {
     const participantsToInit: GroupParticipant[] = [];
     this.groups.forEach(group => {
@@ -324,11 +332,6 @@ export class AdminScoringComponent implements OnInit, OnDestroy {
       this.initScores(participantsToInit);
     }
   }
-
-  /**
-   * Create a score record for the user, returns the participant with their scoreId set to their new score record
-   * @param participant Group Participant
-   */
   initScores(participants: GroupParticipant[]) {
     const teeBlock = this.getDefaultTeeBlockId();
     if (teeBlock) {
@@ -343,6 +346,7 @@ export class AdminScoringComponent implements OnInit, OnDestroy {
       console.error('Error, no default tee block found on the scorecard');
     }
   }
+  */
 
   /**
    * Temporary, get the teeblock id from a teeblock set on the first array of teeblocks from the scorecard.
@@ -350,7 +354,7 @@ export class AdminScoringComponent implements OnInit, OnDestroy {
    * Either way, the scorecard for the course NEEDS to have the teeblock set
    */
   getDefaultTeeBlockId() {
-    const defaultTeeBlock = this.scorecard.scorecardHoles[0].teeBlocks[0].id;
+    const defaultTeeBlock = this.scorecard.scorecardHoles[0].teeBlockHoles[0].teeBlockId;
     if (defaultTeeBlock) {
       return defaultTeeBlock;
     } else {
@@ -426,7 +430,7 @@ export class AdminScoringComponent implements OnInit, OnDestroy {
     let issues = 0;
     this.divisionParticipants.forEach(participant => {
       this.scorecard.scorecardHoles.forEach(hole => {
-        const found = participant.holeScores.filter(x => +x.teeBlockHoleId === +hole.teeBlocks[0].teeBlockHoleId);
+        const found = participant.holeScores.filter(x => +x.teeBlockHoleId === +hole.teeBlockHoles[0].holeId);
         if (found.length > 1) {
           issues++;
         }
@@ -443,7 +447,7 @@ export class AdminScoringComponent implements OnInit, OnDestroy {
     const problems: Problem[] = [];
     this.divisionParticipants.forEach(participant => {
       this.scorecard.scorecardHoles.forEach(hole => {
-        const found: HoleScore[] = participant.holeScores.filter(x => +x.teeBlockHoleId === +hole.teeBlocks[0].teeBlockHoleId);
+        const found: HoleScore[] = participant.holeScores.filter(x => +x.teeBlockHoleId === +hole.teeBlockHoles[0].holeId);
         if (found.length > 1) {
           const problemHoles: HoleScore[] = [];
           for (let f of found) {

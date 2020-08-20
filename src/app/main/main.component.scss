@@ -37,7 +37,9 @@
 .teal-text{
     color:#107896;
 }
-
+.logo-centered {
+    position: absolute; left:50%; top:50%; transform: translate(-50%, -50%); height:90%; background:rgb(115,114,121); border-radius:4px;
+}
 
 
 @media only screen and (max-width: 800px) {

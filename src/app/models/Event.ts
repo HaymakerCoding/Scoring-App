@@ -1,6 +1,7 @@
 import { GroupParticipant } from './GroupParticipant';
 import { Scorecard } from './Scorecard';
 import { Group } from './Group';
+import { EventDivision } from './EventDivision';
 
 /**
  * An event. belongs to a season which belongs to an event type
@@ -20,10 +21,18 @@ export class Event {
       public scorecardId: number,
       public groups: Group[],
       public divisionParticipants: GroupParticipant[],
-      public scorecard: Scorecard
+      public scorecard: Scorecard,
+      public divisionList: EventDivision[],
+      public classification: Classification
 
   ) {}
 
+}
+
+export enum Classification {
+  MAIN = 'main',
+  QUALIFIER = 'qualifier',
+  EXHIBITION = 'exhibition'
 }
 
 enum QualifyingRound {

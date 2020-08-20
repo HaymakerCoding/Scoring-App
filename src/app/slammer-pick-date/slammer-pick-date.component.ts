@@ -5,6 +5,7 @@ import { SlammerEventService } from '../services/slammer-event.service';
 import { EventBasic } from '../models/EventBasic';
 import { Router } from '@angular/router';
 import { MatDialogRef, MatDialog } from '@angular/material/dialog';
+import { EventService } from '../services/event.service';
 
 /**
  * User date selection screen.
@@ -36,7 +37,8 @@ export class SlammerPickDateComponent implements OnInit, OnDestroy {
     private slammerEventService: SlammerEventService,
     private router: Router,
     private snackbar: MatSnackBar,
-    private dialog: MatDialog
+    private dialog: MatDialog,
+    private eventService: EventService
   ) { }
 
   ngOnInit() {
@@ -69,7 +71,8 @@ export class SlammerPickDateComponent implements OnInit, OnDestroy {
   }
 
   /**
-   * Get the events for that day from the database
+   * Get the events for that day based on user logged being involved in the event.
+   * These are slammer tour specific
    * @param date Javascript Date ojb
    */
   getSlammerEvents(date: Date) {
@@ -84,9 +87,13 @@ export class SlammerPickDateComponent implements OnInit, OnDestroy {
     }));
   }
 
+  /**
+   * Get the events for that day based on user logged being involved in the event.
+   * @param date Javascript Date ojb
+   */
   getNonSlammerEvents(date: Date) {
     const mysqlDate = this.getMysqlDate(date);
-    this.subscriptions.push(this.slammerEventService.getNonSlammerEvents(mysqlDate, this._MAXNUMEVENTS.toString()).subscribe(response => {
+    this.subscriptions.push(this.eventService.getNonSlammerEvents(mysqlDate, this._MAXNUMEVENTS.toString()).subscribe(response => {
       if (response.status === 200) {
         this.events = response.payload;
         this.combineArrays(this.slammerEvents, this.events);
@@ -143,10 +150,17 @@ export class SlammerPickDateComponent implements OnInit, OnDestroy {
       const dateParts = event.eventDate.split('-');
       const eventDate = new Date(dateParts[0], dateParts[1] - 1, dateParts[2].substr(0, 2));
       // compare dates to ensure scoring is done on the day of event
-      if (eventDate < this.today || eventDate > this.today) {
+      const host = window.location.href.split('/#/')[0];
+      if ((eventDate < this.today || eventDate > this.today) && +event.eventTypeId !== 1) {
         this.snackbar.open('Sorry scoring is only allowed on the day of the event.', 'Got it!');
+      } else if (+event.eventTypeId === 1) {
+        this.dialogRef = this.dialog.open(passwordDialog, { data: event });
       } else {
         switch(+event.eventTypeId) {
+          case 1: {
+            this.router.navigate(['/scoring/' + event.eventTypeId + '/' + event.id]);
+            break;
+          }
           case 3: {
             this.router.navigate(['/scoring/' + event.eventTypeId + '/' + event.id]);
             break;

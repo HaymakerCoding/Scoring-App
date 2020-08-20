@@ -1,34 +1,35 @@
-<div class="container pb-5">
+<main class="container pb-5">
 
     <div *ngIf="loadingPercent < 100">
         <mat-progress-bar [value]="loadingPercent" mode="determinate"></mat-progress-bar>
         <h6 class="mt-2 text-center">Loading...</h6>
     </div>
     <div *ngIf="loadingPercent === 100">
-        <div class="logo-strip row" style="height:80px; position: relative;">
-            <div class="fun-text col-5 sm-text text-center">
-                <div>
-                    <div class="teal-text">{{ event.courseName }}</div>
-                    <div class="line-text" *ngIf="event.qualifyingRound">{{ event.qualifyingRound }}</div>
+        <section>
+            <article class="logo-strip row" style="height:80px; position: relative;">
+                <div class="fun-text col-5 sm-text text-center">
+                    <div>
+                        <div class="teal-text">{{ event.courseName }}</div>
+                        <div class="line-text" *ngIf="event.qualifyingRound">{{ event.qualifyingRound }}</div>
+                    </div>
                 </div>
+                <time [dateTime]="event.eventDate" class="col-5 offset-2 sm-text text-center">{{ event.eventDate | date: 'EE LLL d'  }}</time>
+                <img class="logo-centered" [src]="getTournamentLogo()">
+            </article>
+        </section>
+        <section>
+            <app-hole-by-hole *ngIf="currentScreen === 'Enter Scores'" [scoringType]="scoringType" [scorecard]="scorecard" [event]="event"></app-hole-by-hole>
+            <app-summary *ngIf="currentScreen === 'Scores'" [scoringType]="scoringType" [scorecard]="scorecard" [event]="event"></app-summary>
+            <app-leaderboard *ngIf="currentScreen === 'Leaderboard'" [eventTypeId]="eventTypeId" [events]="events" [scorecard]="scorecard" [event]="event"></app-leaderboard>
+        </section>
+        <section>
+            <div style="width:100%; display: flex; justify-content: center; align-items: center; padding-top:10px;">
+                <mat-button-toggle-group style="margin: auto;" [(ngModel)]="currentScreen" name="screenToggles">
+                    <mat-button-toggle [value]="screen" *ngFor="let screen of screens">{{ screen }}</mat-button-toggle>
+                </mat-button-toggle-group>
             </div>
-            
-            <div class="col-5 offset-2 sm-text text-center">{{ event.eventDate | date: 'EE LLL d'  }}</div>
-            <img style="position: absolute; left:50%; top:50%; transform: translate(-50%, -50%); height:90%;" src="https://clubeg.golf/Images/Logos/ottawacitizenchampionship300.png">
-        </div>
-
-        <app-hole-by-hole *ngIf="currentScreen === 'Enter Scores'" [scorecard]="scorecard" [event]="event"></app-hole-by-hole>
-        <app-summary *ngIf="currentScreen === 'Scores'" [scorecard]="scorecard" [event]="event"></app-summary>
-        <app-leaderboard *ngIf="currentScreen === 'Leaderboard'" [eventTypeId]="eventTypeId" [events]="events" [scorecard]="scorecard" [event]="event"></app-leaderboard>
-
-        <div style="width:100%; display: flex; justify-content: center; align-items: center; padding-top:10px;">
-            <mat-button-toggle-group style="margin: auto;" [(ngModel)]="currentScreen" name="screenToggles">
-                <mat-button-toggle [value]="screen" *ngFor="let screen of screens">{{ screen }}</mat-button-toggle>
-            </mat-button-toggle-group>
-        </div>
-        <button class="mx-auto d-block mt-2" (click)="goToChooseEvent()" mat-raised-button color="primary">Change Event</button>
-        
+            <button class="mx-auto d-block mt-2" (click)="goToChooseEvent()" mat-raised-button color="primary">Change Event</button>
+        </section>
     </div>
 
-
-</div>
+</main>

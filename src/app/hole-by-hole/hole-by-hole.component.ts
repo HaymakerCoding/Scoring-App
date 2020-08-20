@@ -6,10 +6,10 @@ import { Event } from '../models/Event';
 import { Hole } from '../models/Hole';
 import { HoleScore } from '../models/HoleScore';
 import { Subscription } from 'rxjs';
-import { GroupScoresService } from '../services/group-scores.service';
 import { Router } from '@angular/router';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { GroupService } from '../services/group.service';
+import { ScoringType } from '../main/main.component';
 
 @Component({
   selector: 'app-hole-by-hole',
@@ -20,10 +20,12 @@ export class HoleByHoleComponent implements OnInit, OnDestroy {
 
   @Input() scorecard: Scorecard;
   @Input() event: Event;
+  @Input() scoringType: ScoringType;
   subscriptions: Subscription[] = [];
   holes: number[] = [];
   selectedHole: number;
   group: Group;
+  
   
   constructor(
     private groupService: GroupService,
@@ -31,12 +33,14 @@ export class HoleByHoleComponent implements OnInit, OnDestroy {
     private snackbar: MatSnackBar,
     private changeDetection: ChangeDetectorRef
   ) {
-    for (let x = 1; x < 19; x++) {
-      this.holes.push(x);
-    }
+    
   }
 
   ngOnInit(): void {
+    console.log(this.scorecard);
+    this.scorecard.scorecardHoles.forEach(h => {
+      this.holes.push(+h.no);
+    });
     this.selectedHole = this.groupService.getCurrentHole();
     if (!this.selectedHole) {
       this.selectedHole = 1;
@@ -85,16 +89,29 @@ export class HoleByHoleComponent implements OnInit, OnDestroy {
    * @param teeBlockId 
    */
   getTeeBlockHoleId(holeNum: number, teeBlockId: number) {
+    if (!teeBlockId) {
+      teeBlockId = this.getDefaultTeeBlockId();
+    }
     const scorecardHoles = this.scorecard.scorecardHoles.find(x => +x.no === +holeNum)
-    let teeBlockHole =  scorecardHoles.teeBlocks.find(block => +block.id === +teeBlockId);
+    let teeBlockHole = scorecardHoles.teeBlockHoles.find(block => +block.teeBlockId === +teeBlockId);
     if (!teeBlockHole) {
-      if (+teeBlockId === 7) {
-        return scorecardHoles.teeBlocks.find(block => +block.id === 14).teeBlockHoleId;
-      } else {
-        return scorecardHoles.teeBlocks.find(block => +block.id === 7).teeBlockHoleId;
-      }
+      console.error('Error getting the tee block hole id');
     } else {
-      return teeBlockHole.teeBlockHoleId;
+      return teeBlockHole.id;
+    }
+  }
+
+   /**
+   * Temporary, get the teeblock id from a teeblock set on the first array of teeblocks from the scorecard.
+   * This is just for when we don't care about teeblocks. For real teeblock use we need to pull the members assigned tee block id.
+   * Either way, the scorecard for the course NEEDS to have the teeblock set
+   */
+  getDefaultTeeBlockId() {
+    const defaultTeeBlockId = this.scorecard.scorecardHoles[0].teeBlockHoles[0].teeBlockId;
+    if (defaultTeeBlockId) {
+      return defaultTeeBlockId;
+    } else {
+      console.error('Error, no default tee block found on the scorecard');
     }
   }
 
@@ -155,6 +172,7 @@ export class HoleByHoleComponent implements OnInit, OnDestroy {
         });
         this.groupService.setGroup(this.group);
         this.goToNextHole();
+        console.log(this.group);
         this.changeDetection.detectChanges();
       } else if (response.status === 401 || response.status === 403) {
         this.router.navigate(['/login']);
@@ -209,3 +227,4 @@ export class HoleByHoleComponent implements OnInit, OnDestroy {
 
 
 }
+

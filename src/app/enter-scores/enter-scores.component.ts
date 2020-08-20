@@ -12,7 +12,7 @@ import { DoggieService } from '../services/doggie.service';
 import { SlammerGroup } from '../models/SlammerGroup';
 
 /**
- * Main component for entering scores for a golf event.
+ * Main component for entering scores for SLAMMER TOUR EVENTS
  * User gets a view of their group and can adjust scores per hole and save scores to the database.
  *
  * @author Malcolm Roy

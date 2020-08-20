@@ -6,12 +6,13 @@ import { Event } from '../models/Event';
 import { Group } from '../models/Group';
 import { GroupService } from '../services/group.service';
 import { Scorecard } from '../models/Scorecard';
-import { GroupParticipant } from '../models/GroupParticipant';
 import { DivisionService } from '../services/division.service';
 import { Season } from '../models/Season';
+import { MatSnackBar } from '@angular/material/snack-bar';
 
 /**
  * Main screen for scoring for ALL event types
+ * Child components are included depending on 'screen' being accesed by user
  * 
  * @author Malcolm Roy
  */
@@ -34,13 +35,15 @@ export class MainComponent implements OnInit, OnDestroy {
   screens: Screen[] = [Screen.ENTERSCORES, Screen.SCORES, Screen.LEADERBOARD];
   currentScreen: Screen;
   season: Season;
+  scoringType: ScoringType;
 
   constructor(
     private eventService: EventService,
     private activatedRoute: ActivatedRoute,
     private groupService: GroupService,
     private router: Router,
-    private divisionService: DivisionService
+    private divisionService: DivisionService,
+    private snackbar: MatSnackBar
   ) { }
 
   ngOnInit(): void {
@@ -62,8 +65,26 @@ export class MainComponent implements OnInit, OnDestroy {
       this.eventTypeId = params.eventTypeId;
       this.eventId = params.eventId;
       this.setLoadingPercent(10);
+      this.setScoringType();
       this.getEvent(this.eventId);
     }));
+  }
+
+  setScoringType() {
+    switch (+this.eventTypeId) {
+      case 1: {
+        this.scoringType = ScoringType.TEAM;
+        break;
+      }
+      case 3: {
+        this.scoringType = ScoringType.INDIVIDUAL;
+        break;
+      }
+      default: {
+        this.snackbar.open('Error - scoring type not set for this event type');
+        break;
+      }
+    }
   }
 
   /**
@@ -88,7 +109,7 @@ export class MainComponent implements OnInit, OnDestroy {
       if (response.status === 200) {
         this.season = response.payload
         this.setLoadingPercent(50);
-        this.getEevents();
+        this.getEvents();
       } else {
         console.error(response);
       }
@@ -98,7 +119,7 @@ export class MainComponent implements OnInit, OnDestroy {
   /**
    * Get all events in the tournament. For total scoring of all rounds(events)
    */
-  getEevents() {
+  getEvents() {
     this.subscriptions.push(this.eventService.getAllEvents(this.season).subscribe(response => {
       if (response.status === 200) {
         this.events = response.payload;
@@ -114,12 +135,18 @@ export class MainComponent implements OnInit, OnDestroy {
    * Get the group of player that the user logged in belongs to for this event
    */
   getUsersGroup() {
-    this.subscriptions.push(this.groupService.getUsersGroup(this.eventId).subscribe(response => {
+    const type = +this.eventTypeId === 1 ? 'pairs' : 'individual';
+    this.subscriptions.push(this.groupService.getUsersGroup(this.eventId, type).subscribe(response => {
       if (response.status === 200) {
         this.group = response.payload;
-        this.groupService.setGroup(this.group);
-        this.setLoadingPercent(70);
-        this.getUsersDivision();
+        console.log(this.group);
+        if (!this.group.id) {
+          this.snackbar.open('This user does not have a group for this event.', 'dismiss');
+        } else {
+          this.groupService.setGroup(this.group);
+          this.setLoadingPercent(70);
+          this.getUsersDivision();
+        }
       } else {
         console.error(response);
       }
@@ -127,7 +154,7 @@ export class MainComponent implements OnInit, OnDestroy {
   }
 
   getUsersDivision() {
-    this.subscriptions.push(this.divisionService.getUsersDivisionFromServer(this.eventTypeId).subscribe(response => {
+    this.subscriptions.push(this.divisionService.getUsersDivisionFromServer(this.event.id.toString()).subscribe(response => {
       if (response.status === 200) {
         this.divisionService.setUsersDivision(response.payload);
         this.setLoadingPercent(80);
@@ -145,41 +172,7 @@ export class MainComponent implements OnInit, OnDestroy {
     this.subscriptions.push(this.eventService.getScorecard(this.event.scorecardId.toString()).subscribe(response => {
       if (response.status === 200) {
         this.scorecard = response.payload;
-        this.setLoadingPercent(90);
-        this.checkScores();
-      } else {
-        console.error(response);
-      }
-    }));
-  }
-
-  /**
-   * Check if each user in group has scores. If score id is null then we create an initial score record for the participant
-   */
-  checkScores() {
-    this.group.groupParticipants.forEach(participant => {
-      if (participant.scoreId === null) {
-        this.initScore(participant);
-      } else {
-        this.scoreInitialized ++;
-        if (this.scoreInitialized === this.group.groupParticipants.length) {
-          this.setLoadingPercent(100);
-        }
-      }
-    })
-  }
-
-  /**
-   * Create a score record for the user, returns the participant with their scoreId set to their new score record
-   * @param participant Group Participant
-   */
-  initScore(participant: GroupParticipant) {
-    this.subscriptions.push(this.groupService.initScore(participant, this.event.scorecardId, this.getDefaultTeeBlockId()).subscribe(response => {
-      if (response.status === 201) {
-        participant = response.payload
-        if (this.scoreInitialized === this.group.groupParticipants.length) {
-          this.setLoadingPercent(100);
-        }
+        this.setLoadingPercent(100);
       } else {
         console.error(response);
       }
@@ -192,7 +185,7 @@ export class MainComponent implements OnInit, OnDestroy {
    * Either way, the scorecard for the course NEEDS to have the teeblock set
    */
   getDefaultTeeBlockId() {
-    const defaultTeeBlock = this.scorecard.scorecardHoles[0].teeBlocks[0].id;
+    const defaultTeeBlock = this.scorecard.scorecardHoles[0].teeBlockHoles[0].teeBlockId;
     if (defaultTeeBlock) {
       return defaultTeeBlock;
     } else {
@@ -204,6 +197,14 @@ export class MainComponent implements OnInit, OnDestroy {
     this.router.navigate(['/'])
   }
 
+  getTournamentLogo() {
+    switch (+this.eventTypeId) {
+      case 1: return './assets/scramble2.png';
+      case 3: return 'https://clubeg.golf/Images/Logos/ottawacitizenchampionship300.png';
+      default: return 'https://clubeg.golf/Images/Logos/clubeg-golf200.png';
+    }
+  }
+
 
 }
 
@@ -211,4 +212,9 @@ enum Screen{
   ENTERSCORES = 'Enter Scores',
   SCORES = 'Scores',
   LEADERBOARD = 'Leaderboard'
+}
+
+export enum ScoringType {
+  INDIVIDUAL = 'individual',
+  TEAM = 'team'
 }

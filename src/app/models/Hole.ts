@@ -8,7 +8,7 @@ export class Hole {
     public id: number,
     public par: number,
     public no: number,
-    public teeBlocks : TeeBlock[]
+    public teeBlockHoles : TeeBlockHole[]
   ) {}
 
 }
@@ -16,14 +16,16 @@ export class Hole {
 /**
  * Tee blocks that can be played at the hole, adds distance for that tee block and can be used to override default hole par
  */
-export class TeeBlock {
+export class TeeBlockHole {
 
   constructor(
     public id: number,
-    public teeBlockHoleId: number,
-    public color: string,
+    public teeBlockId: number,
+    public holeId: number,
     public distance: number,
-    public par: number // this par is an override value, could be null
+    public color: string,
+    public par: number, // this par is an override value, could be null
+    public no: number
 
   ) {}
 

@@ -16,12 +16,16 @@
         <div *ngFor="let column of columns">
         <ng-container *ngIf="column === 'name'" sticky [matColumnDef]="column">
             <td mat-cell *matCellDef="let participant">
-                {{ column === 'name' ? participant.fullName : getHoleScore(participant, column) }}
+                {{ column === 'name' ? 
+                (scoringType === 'individual' ? participant.fullName : participant.teamMembers[0].fullName + ' & ' + participant.teamMembers[1].fullName)
+                : getHoleScore(participant, column) }}
             </td>
         </ng-container>
         <ng-container *ngIf="column !== 'name'" [matColumnDef]="column">
             <td class="firstNum" mat-cell *matCellDef="let participant">
-                {{ column === 'name' ? participant.fullName : getHoleScore(participant, column) }}
+                {{ column === 'name' ? 
+                (scoringType === 'individual' ? participant.fullName : participant.teamMembers[0].fullName + ' & ' + participant.teamMembers[1].fullName)
+                : getHoleScore(participant, column) }}
             </td>
         </ng-container>
         </div>

@@ -112,20 +112,7 @@ export class SlammerEventService {
     );
   }
 
-  /**
-   * Ideally we will make all Events generic, but for now some are slammer specific. Here we grab the events that are generic.
-   * Using the Slammer Event service as this service should be refactored eventually to just be an event service
-   * Get upcoming events from the date passed in. Maxed to the number max number provided.
-   */
-  getNonSlammerEvents(date: string, maxNum: string){
-    const headers = this.authService.getAuthHeader();
-    const params = new HttpParams().set('date', date).set('maxNum', maxNum);
-    return this.http.get<any>('https://clubeg.golf/common/api_REST/v1/clubeg/event/get-upcoming-for-user/index.php',
-    { params, headers })
-    .pipe(map(response => {
-      return response;
-    }));
-  }
+  
 
 
 }

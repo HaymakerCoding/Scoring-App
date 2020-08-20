@@ -23,9 +23,9 @@ export class DivisionService {
     return this.usersDivision;
   }
 
-  getUsersDivisionFromServer(eventTypeId: string) {
+  getUsersDivisionFromServer(eventId: string) {
     const headers = this.authService.getAuthHeader();
-    const params = new HttpParams().set('eventTypeId', eventTypeId)
+    const params = new HttpParams().set('eventId', eventId)
     return this.http.get<any>('https://clubeg.golf/common/api_REST/v1/clubeg/event/group/get-users-division/index.php',
     { params, headers }).pipe(map(response => {
       return response;
