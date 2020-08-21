@@ -7,15 +7,17 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    height:50px;
+    height:55px;
     border-top:1px solid lightgray;
     background-color: #f2f4f7;
 }
 .result-rows-left{
     display: flex;
     align-items: center;
-    height:50px;
+    flex-flow: wrap;
+    height:55px;
     padding-left:10px;
+    font-size:13px;
     cursor:pointer;
     border-top:1px solid lightgray;
     background-color: #f2f4f7;
@@ -35,7 +37,7 @@
     background: rgb(115,114,121);
     background: radial-gradient(circle, rgba(115,114,121,1) 0%, rgba(49,49,54,1) 68%, rgba(43,44,47,1) 100%);
     color:white;
-    min-width:240px;
+    min-width:180px;
 }
 .teal-text{
     color:#107896;

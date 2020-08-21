@@ -135,7 +135,7 @@ export class EventService {
    * @param participant Group Participant
    * @param password Password entered to verify user's right to do this on this event
    */
-  makeScoresOfficial(participant: GroupParticipant, password: string, eventId: number) {
+  makeScoresOfficial(participant: EventParticipant, password: string, eventId: number) {
     const headers = this.authService.getAuthHeader();
     return this.http.patch<any>('https://clubeg.golf/common/api_REST/v1/clubeg/event/group/score/make-scores-official/index.php',
     { participant, password, eventId }, { headers })

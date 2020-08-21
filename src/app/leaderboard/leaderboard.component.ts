@@ -1,7 +1,6 @@
 import { Component, OnInit, Input, OnDestroy } from '@angular/core';
 import { Scorecard } from '../models/Scorecard';
 import { Event } from '../models/Event';
-import { GroupService } from '../services/group.service';
 import { DivisionService } from '../services/division.service';
 import { Subscription } from 'rxjs';
 import { EventService } from '../services/event.service';
@@ -40,7 +39,6 @@ export class LeaderboardComponent implements OnInit, OnDestroy {
   @Input() scoringType: ScoringType;
 
   constructor(
-    private groupService: GroupService,
     private divisionService: DivisionService,
     private eventService: EventService
   ) { }
@@ -109,12 +107,15 @@ export class LeaderboardComponent implements OnInit, OnDestroy {
     if (this.scoringType === ScoringType.TEAM) {
       this.teams.forEach( team => {
         team.score = this.getScore(team, this.getTotalHolesComplete(team), this.scorecard);
-      });        
+      });
+      this.sortScores(this.teams);
     } else {
       this.indivduals.forEach( x => {
         x.score = this.getScore(x, this.getTotalHolesComplete(x), this.scorecard);
       });
+      this.sortScores(this.indivduals);
     }
+    
     this.setLoadingPercent(100);
   }
 
@@ -138,6 +139,14 @@ export class LeaderboardComponent implements OnInit, OnDestroy {
       }
     });
     return usersScore - targetPar;
+  }
+
+  sortScores(participants: any[]) {
+    if (participants) {
+      participants.sort((a, b) => {
+        return a.score - b.score;
+      });
+    }
   }
   
 /*
@@ -208,13 +217,7 @@ export class LeaderboardComponent implements OnInit, OnDestroy {
     this.sortScores();
   }
 
-  sortScores() {
-    if (this.displayParticipants) {
-      this.displayParticipants.sort((a, b) => {
-        return a.totalScore - b.totalScore;
-      });
-    }
-  }
+  
 
   getHoleComplete(participant: GroupParticipant): number {
     let max = 0;

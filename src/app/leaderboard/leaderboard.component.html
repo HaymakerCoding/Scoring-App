@@ -11,20 +11,23 @@
             <h3 class="headings">Competitor</h3>
         </div>
         <div class="col-3 text-center">
-            <h3 class="headings">Holes<br>Complete</h3>
+            <h3 class="headings">HC</h3>
         </div>
         <div class="col-3 text-center">
             <h3 class="headings">Score</h3>
         </div>
     </div>
-    <div *ngFor="let participant of getParticipants(); let i = index" class="row">
+    <div *ngFor="let participant of getParticipants(); let i = index" class="row" style="border-bottom: 1px solid rgb(236, 236, 236); padding:5px;">
         <div class="col-6">
-            <div>{{ (i+1) + '. ' + getParticipantNames(participant) }}</div>
+            <div *ngIf="scoringType === 'individual'">{{(i+1) + '. ' + participant.fullName }}</div>
+                <div *ngIf="scoringType === 'team'">{{ (i+1) + '. ' + participant.teamMembers[0].fullName }}</div>
+                <div *ngIf="scoringType === 'team'">{{ participant.teamMembers[1].fullName }}</div>
+            
         </div>
-        <div class="col-3 text-center">
+        <div class="col-3 text-center flex-center">
             <div>{{ getTotalHolesComplete(participant) }}</div>
         </div>
-        <div class="col-3 text-center">
+        <div class="col-3 text-center flex-center">
             <div>{{ participant.score > 0 ? '+' + participant.score : participant.score === 0 ? 'Even' : participant.score}}</div>
         </div>
     </div>

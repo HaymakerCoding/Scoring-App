@@ -15,14 +15,12 @@
 <div class="row">
     <div class="col-4 pr-0">
         <div class="col-titles">Player</div>
-        <div *ngIf="scoringType === 'individual'">
+        <div>
             <div *ngFor="let participant of group.groupParticipants" class="result-rows-left">
-                <span class="teal-text">{{ participant.fullName }}</span>
-            </div>
-        </div>
-        <div *ngIf="scoringType === 'team'">
-            <div *ngFor="let participant of group.groupParticipants" class="result-rows-left">
-                <span class="teal-text">{{ participant.teamMembers[0].fullName + ' & ' + participant.teamMembers[1].fullName }}</span>
+                <span *ngIf="scoringType === 'individual'" class="teal-text">{{ participant.fullName }}</span>
+                <div *ngIf="scoringType === 'team'" class="teal-text full-width">{{ participant.teamMembers[0].fullName }}</div>
+                <br>
+                <div *ngIf="scoringType === 'team'" class="teal-text full-width">{{ participant.teamMembers[1].fullName }}</div>
             </div>
         </div>
     </div>
