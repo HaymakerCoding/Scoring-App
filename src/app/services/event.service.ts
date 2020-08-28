@@ -131,14 +131,23 @@ export class EventService {
   }
 
    /**
-   * 'Admin' scoring, set a participants scores as 'official'
+   * 'Admin' scoring, set a participants scores as 'official' toggled true of false
    * @param participant Group Participant
    * @param password Password entered to verify user's right to do this on this event
    */
-  makeScoresOfficial(participant: EventParticipant, password: string, eventId: number) {
+  makeScoresOfficial(participant: EventParticipant, password: string, eventId: number, official: number) {
     const headers = this.authService.getAuthHeader();
     return this.http.patch<any>('https://clubeg.golf/common/api_REST/v1/clubeg/event/group/score/make-scores-official/index.php',
-    { participant, password, eventId }, { headers })
+    { participant, password, eventId, official }, { headers })
+    .pipe(map(response => {
+      return response;
+    }));
+  }
+
+  deleteHoleScoreByPassword(id: string, password: string, eventId: string) {
+    const headers = this.authService.getAuthHeader();
+    return this.http.post<any>('https://clubeg.golf/common/api_REST/v1/clubeg/event/group/score/delete-hole-score-by-password/index.php',
+    { id, password, eventId }, { headers })
     .pipe(map(response => {
       return response;
     }));

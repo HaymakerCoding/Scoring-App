@@ -1,7 +1,7 @@
 
 <main class="container pb-5">
 
-    <h1>Admin Scoring</h1>
+    <h1 class="mt-3 mb-3">Admin Scoring</h1>
     
     <div *ngIf="loadingPercent < 100">
         <mat-progress-bar [value]="loadingPercent" mode="determinate"></mat-progress-bar>
@@ -42,42 +42,65 @@
     
         <div class="table-container" *ngIf="divisionSelected">
             <p class="hover-link" (click)="showProblems(problemDialog)">{{ checkNumIssues() }} issues found.</p>
-            <table mat-table [dataSource]="getDatasource()" class="full-width mat-elevation-z4">
+            <table mat-table [dataSource]="getDatasource()" class="mat-elevation-z4">
                 <ng-container sticky [matColumnDef]="'hole'">
-                    <th sticky mat-header-cell *matHeaderCellDef>Hole</th> 
+                    <th class="text-left" sticky mat-header-cell *matHeaderCellDef>Hole</th> 
                 </ng-container>
                 <ng-container *ngFor="let hole of scorecard.scorecardHoles" [matColumnDef]="'h'+hole.no">
                     <th class="firstNum" mat-header-cell *matHeaderCellDef>{{ hole.no }}</th>    
                 </ng-container>
                 <ng-container [matColumnDef]="'total'">
-                    <th mat-header-cell *matHeaderCellDef>Total</th> 
+                    <th class="text-center" mat-header-cell *matHeaderCellDef>Total</th> 
                 </ng-container>
                 <ng-container sticky [matColumnDef]="'par'">
-                    <th mat-header-cell *matHeaderCellDef>Par</th> 
+                    <th class="text-left"  mat-header-cell *matHeaderCellDef>Par</th> 
+                </ng-container>
+                <ng-container [matColumnDef]="'front'">
+                    <th class="text-center" mat-header-cell *matHeaderCellDef>Front</th> 
+                </ng-container>
+                <ng-container [matColumnDef]="'back'">
+                    <th class="text-center" mat-header-cell *matHeaderCellDef>Back</th> 
+                </ng-container>
+                <ng-container [matColumnDef]="'frontParTotal'">
+                    <th class="text-center" mat-header-cell *matHeaderCellDef>{{ getFrontParTotal() }}</th> 
+                </ng-container>
+                <ng-container [matColumnDef]="'backParTotal'">
+                    <th class="text-center" mat-header-cell *matHeaderCellDef>{{ getBackParTotal() }}</th> 
                 </ng-container>
                 <ng-container *ngFor="let hole of scorecard.scorecardHoles" [matColumnDef]="'p'+hole.no">
                     <th class="firstNum" mat-header-cell *matHeaderCellDef>{{ hole.par }}</th>    
                 </ng-container>
                 <ng-container [matColumnDef]="'parTotal'">
-                    <th mat-header-cell *matHeaderCellDef>{{ getParTotal() }}</th> 
+                    <th class="text-center" mat-header-cell *matHeaderCellDef>{{ getParTotal() }}</th> 
                 </ng-container>
                 <div *ngFor="let column of columns">
-                    <ng-container *ngIf="column === 'name'" sticky [matColumnDef]="column">
-                        <td mat-cell *matCellDef="let participant">
-                            {{ getPlayersNames(participant) }}
+                    <ng-container class="name-col" *ngIf="column === 'name'" sticky [matColumnDef]="column">
+                        <td mat-cell *matCellDef="let participant; let i = index;">
+                            <div *ngIf="scoringType === 'individual'">{{ participant.fullName }}</div>
+                            <div *ngIf="scoringType === 'team'">{{ participant.teamMembers[0].fullName }}</div>
+                            <div *ngIf="scoringType === 'team'">&nbsp;&nbsp;&nbsp; {{ participant.teamMembers[1].fullName }}</div>
+                            <p style="color:red;" *ngIf="+participant.groupParticipantId === 0" >
+                                * Not grouped
+                            </p>
                             <mat-icon *ngIf="hasOfficialScores(participant)" style="color:green;">done</mat-icon>
                         </td>
                     </ng-container>
                     <ng-container *ngIf="column === 'totalScore'" [matColumnDef]="column">
-                        <td mat-cell *matCellDef="let participant">{{ getScore(participant) > 0 ? '+' + getScore(participant) : getScore(participant) === 0 ? 'Even' : getScore(participant) }}</td>
+                        <td class="text-center total-col" mat-cell *matCellDef="let participant">
+                            {{ participant.score > 0 ? '+' + participant.score : participant.score === 0 ? 'Even' : participant.score }}
+                        </td>
                     </ng-container>
-                    <ng-container *ngIf="column !== 'name' && column !== 'totalScore'" [matColumnDef]="column">
+                    <ng-container *ngIf="column !== 'name' && column !== 'totalScore' && column !== 'backPlayerTotal' && column !== 'frontPlayerTotal'" [matColumnDef]="column">
                         <td class="firstNum" mat-cell *matCellDef="let participant">
                             {{ column === 'name' ? participant.fullName : getHoleScore(participant, column) }}
                         </td>
                     </ng-container>
-                    
-                    
+                    <ng-container *ngIf="column === 'backPlayerTotal'" [matColumnDef]="column">
+                        <td class="text-center back-col" mat-cell *matCellDef="let participant">{{ getPlayerBackTotal(participant) }}</td>
+                    </ng-container>
+                    <ng-container *ngIf="column === 'frontPlayerTotal'" [matColumnDef]="column">
+                        <td class="text-center front-col" mat-cell *matCellDef="let participant">{{ getPlayerFrontTotal(participant) }}</td>
+                    </ng-container>
                 </div>
                 
                 <tr class="dark-bkg" mat-header-row *matHeaderRowDef="holeColumns"></tr>
@@ -151,10 +174,33 @@
         <mat-dialog-content>
             <button class="full-width" (click)="showEdit(data, editDialog)" mat-raised-button color="primary">Edit Scores</button>
             <hr>
-            <button class="full-width" mat-raised-button color="primary" (click)="makeScoresOfficial(data)">Make Scores Official</button>
+            <button class="full-width" *ngIf="hasOfficialScores(data) === false" mat-raised-button color="primary" (click)="makeScoresOfficial(data, 1)">Make Scores Official</button>
+            <button class="full-width" *ngIf="hasOfficialScores(data) === true" mat-raised-button color="primary" (click)="makeScoresOfficial(data, 0)">Revert Back to Unofficial</button>
+            <hr>
+            <button class="full-width" (click)="showEdit(data, deleteDialog)" mat-raised-button color="primary">Delete Scores</button>
             <hr>
             <button class="full-width" (click)="close()" mat-raised-button color="primary">Cancel</button>
         </mat-dialog-content>
+    </ng-template>
+
+    <!--Dialog to delete the partipants scores-->
+    <ng-template let-data #deleteDialog>
+        <h3 mat-dialog-title>{{ 'All Hole Scores for ' + getPlayersNames(data) }}</h3>
+        <mat-dialog-content>
+            <div class="row" style="width:100%;">
+                <div class="col-4">Hole #</div>
+                <div class="col-4 text-center">Score</div>
+                <div class="col-4 text-center">Delete</div>
+            </div>
+            <div class="row" *ngFor="let holeScore of data.holeScores; let i = index" style="width:100%;">
+                <div class="col-4">{{ holeScore.hole }}</div>
+                <div class="col-4 text-center">{{ holeScore.score }}</div>
+                <div class="col-4 text-center" (click)="deleteHoleScore(data, holeScore.id)"><mat-icon>delete_forever</mat-icon></div>
+            </div>
+        </mat-dialog-content>
+        <mat-dialog-actions>
+            <button (click)="close()" mat-raised-button color="primary">Done</button>
+        </mat-dialog-actions>
     </ng-template>
     
 

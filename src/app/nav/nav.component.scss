@@ -18,6 +18,10 @@
     text-shadow: #000 0px 0px 1px, #000 0px 0px 1px, #000 0px 0px 1px;
 }
 
+.tool-bar {
+    background-image:url('https://clubeg.golf/background.jpg'); z-index:2; height:50px;background-position: bottom; position: relative;
+}
+
 @media only screen and (max-width: 800px) {
     .user-name-hidden{
         display: none;

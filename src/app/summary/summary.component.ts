@@ -40,6 +40,7 @@ export class SummaryComponent implements OnInit {
       this.parColumns.push('p'+hole.no);
       this.columns.push(hole.no.toString());
     });
+    console.log(this.scorecard);
     this.dataSource = new MatTableDataSource(this.group.groupParticipants);
   }
 

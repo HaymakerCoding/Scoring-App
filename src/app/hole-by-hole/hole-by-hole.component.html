@@ -13,7 +13,7 @@
 </div>
 
 <div class="row">
-    <div class="col-4 pr-0">
+    <div class="col-5 pr-0">
         <div class="col-titles">Player</div>
         <div>
             <div *ngFor="let participant of group.groupParticipants" class="result-rows-left">
@@ -32,7 +32,7 @@
             <button class="score-btns" [disabled]="hasOfficialScores(participant)" (click)="changeScore(participant, 1)" color="primary" mat-raised-button>+</button>
         </div>
     </div>
-    <div class="col-4 pl-0 text-center">
+    <div class="col-3 pl-0 text-center">
         <div class="col-titles">Total</div>
         <div class="result-rows" *ngFor="let participant of group.groupParticipants">
             <div class="ml-3 mr-3 scores teal-text">{{ getPlayersResult(participant) > 0 ?  '+' + getPlayersResult(participant) : getPlayersResult(participant) }}</div>

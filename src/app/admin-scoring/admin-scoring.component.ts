@@ -155,13 +155,28 @@ export class AdminScoringComponent implements OnInit, OnDestroy {
     this.holeColumns.push('hole');
     this.scorecard.scorecardHoles.forEach(hole => {
       this.holeColumns.push('h'+hole.no);
-      
+      if (+hole.no === 9) {
+        this.holeColumns.push('front');
+      } else if (+hole.no === 18) {
+        this.holeColumns.push('back');
+      }
     });
     this.holeColumns.push('total');
     this.parColumns.push('par');
     this.scorecard.scorecardHoles.forEach(hole => {
       this.parColumns.push('p'+hole.no);
+      if (+hole.no === 9) {
+        this.parColumns.push('frontParTotal');
+      } else if (+hole.no === 18) {
+        this.parColumns.push('backParTotal');
+      }
       this.columns.push(hole.no.toString());
+      if (+hole.no === 9) {
+        this.columns.push('frontPlayerTotal');
+      }
+      if (+hole.no === 18) {
+        this.columns.push('backPlayerTotal');
+      }
     });
     this.parColumns.push('parTotal');
     this.columns.push('totalScore');
@@ -177,6 +192,7 @@ export class AdminScoringComponent implements OnInit, OnDestroy {
         } else {
           this.indivduals = response.payload;
         }
+        this.setScores()
         this.checkScores();
       } else {
         console.error(response);
@@ -237,21 +253,25 @@ export class AdminScoringComponent implements OnInit, OnDestroy {
    * @param participant Group participant
    * @param password User entered password
    */
-  makeScoresOfficial(participant: EventParticipant) {
+  makeScoresOfficial(participant: EventParticipant, official: number) {
     if (!this.password || this.password === '') {
       this.validPassword = false;
     } else {
-      let missingScores;
-      this.scorecard.scorecardHoles.forEach(hole => {
-        const holeScore = participant.holeScores.find(x => +x.hole === +hole.no);
-        if (!holeScore) {
-          missingScores = true;
+        if (official === 1) { 
+        let missingScores;
+        this.scorecard.scorecardHoles.forEach(hole => {
+          const holeScore = participant.holeScores.find(x => +x.hole === +hole.no);
+          if (!holeScore) {
+            missingScores = true;
+          }
+        });
+        if (missingScores && missingScores === true) {
+          this.snackbar.open('Please ensure player has scores for ALL holes first.', 'dismiss');
+        } else {
+          this.setOfficial(participant, this.password, official);
         }
-      });
-      if (missingScores && missingScores === true) {
-        this.snackbar.open('Please ensure player has scores for ALL holes first.', 'dismiss');
       } else {
-        this.setOfficial(participant, this.password);
+        this.setOfficial(participant, this.password, official);
       }
     }
   }
@@ -261,12 +281,12 @@ export class AdminScoringComponent implements OnInit, OnDestroy {
    * @param participant Group Participant
    * @param password Password entered by user to verify access
    */
-  setOfficial(participant: EventParticipant, password: string) {
-    this.subscriptions.push(this.eventService.makeScoresOfficial(participant, password, this.event.id).subscribe(response => {
+  setOfficial(participant: EventParticipant, password: string, official: number) {
+    this.subscriptions.push(this.eventService.makeScoresOfficial(participant, password, this.event.id, official).subscribe(response => {
       if (response.status === 200) {
         this.close();
         this.snackbar.open('Scores are official!', '', { duration: 1100 });
-        participant.holeScores.forEach(x => x.official = 1);
+        participant.holeScores.forEach(x => x.official = official);
       } else if (response.status === 509 ) {
         this.snackbar.open('Invalid password', 'dismiss');
       } else {
@@ -310,7 +330,7 @@ export class AdminScoringComponent implements OnInit, OnDestroy {
     const participantsToInit: EventParticipant[] = [];
     if (this.scoringType === ScoringType.TEAM) {
       this.teams.forEach(participant => {
-        if (participant.scoreId === null) {
+        if (participant.scoreId === null && participant.groupParticipantId && +participant.groupParticipantId !== 0) {
           participantsToInit.push(participant);
         } 
       });
@@ -328,6 +348,10 @@ export class AdminScoringComponent implements OnInit, OnDestroy {
     }
   }
   
+  /**
+   * Initialize a scoring record for GROUP participants missing a scoring ID
+   * @param participants 
+   */
   initScores(participants: EventParticipant[]) {
     this.setLoadingPercent(25);
     console.log('initalizing scores for ' + participants.length + ' participants');
@@ -335,7 +359,8 @@ export class AdminScoringComponent implements OnInit, OnDestroy {
     if (teeBlock) {
       this.subscriptions.push(this.eventService.initMultipleScores(participants, this.event.scorecardId, teeBlock).subscribe(response => {
         if (response.status === 201) {
-          this.getEventParticipants();
+          this.setLoadingPercent(100);
+          this.snackbar.open('Background process ran to initialize score IDs missing. Refresh page needed.', 'dismiss');
         } else {
           console.error(response);
         }
@@ -403,26 +428,6 @@ export class AdminScoringComponent implements OnInit, OnDestroy {
   }
 
   /**
-   * Return the participants current score.
-   * Compare their hole scores total to toal pars.
-   * @param participant Grooup Participant
-   */
-  getScore(participant: EventParticipant): number {
-    let targetPar = 0;
-    let usersScore = 0;
-    participant.holeScores.forEach(holeScore => {
-      if (holeScore.id) {
-        usersScore += +holeScore.score;
-        const hole = this.scorecard.scorecardHoles.find(x => +x.no === +holeScore.hole);
-        if (hole) {
-          targetPar += +this.scorecard.scorecardHoles.find(x => +x.no === +holeScore.hole).par;
-        }
-      }
-    });
-    return +usersScore - +targetPar;
-  }
-
-  /**
    * Check for any duplicate holeScores for a user.
    * Return number found
    */
@@ -447,7 +452,7 @@ export class AdminScoringComponent implements OnInit, OnDestroy {
     const problems: Problem[] = [];
     this.teams.forEach(participant => {
       this.scorecard.scorecardHoles.forEach(hole => {
-        const found: HoleScore[] = participant.holeScores.filter(x => +x.teeBlockHoleId === +hole.teeBlockHoles[0].holeId);
+        const found: HoleScore[] = participant.holeScores.filter(x => +x.hole === +hole.no);
         if (found.length > 1) {
           const problemHoles: HoleScore[] = [];
           for (let f of found) {
@@ -520,6 +525,132 @@ export class AdminScoringComponent implements OnInit, OnDestroy {
       }
     }));
   }
+
+  getTotalHolesComplete(participant): number {
+    let total: number = 0;
+    participant.holeScores.forEach(holeScore => {
+      if (+holeScore.id) {
+        total++;
+      }
+    });
+    return total;
+  }
+
+  setScores() {
+    console.log(this.scorecard);
+    if (this.scoringType === ScoringType.TEAM) {
+      this.teams.forEach( team => {
+        team.score = this.getScore(team, this.getTotalHolesComplete(team));
+      });
+      this.sortScores(this.teams);
+    } else {
+      this.indivduals.forEach( x => {
+        x.score = this.getScore(x, this.getTotalHolesComplete(x));
+      });
+      this.sortScores(this.indivduals);
+    }
+  }
+
+  sortScores(participants: any[]) {
+    if (participants) {
+      participants.sort((a, b) => {
+        return a.score - b.score;
+      });
+    }
+  }
+
+  /**
+   * Return the participants current score.
+   * Compare their hole scores total to toal pars.
+   * @param participant Grooup Participant
+   * @param maxHoleComplete The Max hole the participant has played up to
+   */
+  getScore(participant: EventParticipant, maxHoleComplete: number): number {
+    let targetPar = 0;
+    let usersScore = 0;
+    this.scorecard.scorecardHoles.forEach(hole => {
+      if (+hole.no <= +maxHoleComplete) {
+        targetPar += +hole.par;
+      }
+    });
+    participant.holeScores.forEach(holeScore => {
+      if (+holeScore.hole <= +maxHoleComplete) {
+        usersScore += +holeScore.score;
+      }
+    });
+    return usersScore - targetPar;
+  }
+
+  /**
+   * Remove a member's hole score by its record id
+   * @param participant Participant to remove score for could be individual or team
+   * @param id PK
+   */
+  deleteHoleScore(participant, id: number) {
+    if (!this.password || this.password === '') {
+      this.validPassword = false;
+    } else {
+      this.subscriptions.push(this.eventService.deleteHoleScoreByPassword(id.toString(), this.password, this.event.id.toString()).subscribe(response => {
+        if (response.status === 200) {
+          participant.holeScores = participant.holeScores.filter(x => +x.id !== +id);
+          this.snackbar.open('Hole Score Deleted!', '', {duration: 1100 });
+        } else {
+          console.error(response);
+        }
+      }));
+    }
+  }
+
+  /**
+   * Get players total for the Back 9 holes (10-18)
+   * @param participant Group Participant
+   */
+  getPlayerBackTotal(participant) {
+    let total = 0;
+    participant.holeScores.forEach(holeScore => {
+      if (+holeScore.hole >= 10) {
+        total += +holeScore.score;
+      }
+    });
+    return total;
+  }
+
+  /**
+   * Get the players total for the Front 9 holes (1-9)
+   * @param participant Group participant
+   */
+  getPlayerFrontTotal(participant) {
+    let total = 0;
+    participant.holeScores.forEach(holeScore => {
+      if (+holeScore.hole < 10) {
+        total += +holeScore.score;
+      }
+    });
+    return total;
+  }
+
+  getFrontParTotal() {
+    let total = 0;
+    this.scorecard.scorecardHoles.forEach(hole => {
+      if (+hole.no < 10) {
+        total += +hole.par;
+      }
+    });
+    return total;
+  }
+
+  getBackParTotal() {
+    let total = 0;
+    this.scorecard.scorecardHoles.forEach(hole => {
+      if (+hole.no >= 10) {
+        total += +hole.par;
+      }
+    });
+    return total;
+  }
+
+  
+
 }
 
 interface Problem {
