@@ -1,6 +1,6 @@
 import { BrowserModule } from '@angular/platform-browser';
 import { NgModule } from '@angular/core';
-import { HttpClientModule } from '@angular/common/http';
+import { HttpClientModule, HTTP_INTERCEPTORS } from '@angular/common/http';
 import { ReactiveFormsModule } from '@angular/forms';
 import { FormsModule } from '@angular/forms';
 
@@ -48,9 +48,9 @@ import { HoleByHoleComponent } from './hole-by-hole/hole-by-hole.component';
 import { SummaryComponent } from './summary/summary.component';
 import { LeaderboardComponent } from './leaderboard/leaderboard.component';
 import { AdminScoringComponent } from './admin-scoring/admin-scoring.component';
-import { AdminScoringEditComponent } from './admin-scoring-edit/admin-scoring-edit.component';
 import { ErrorPageComponent } from './error-page/error-page.component';
 import { LogoutComponent } from './logout/logout.component';
+import { ErrorInterceptor } from './error.interceptor';
 
 @NgModule({
   declarations: [
@@ -68,7 +68,6 @@ import { LogoutComponent } from './logout/logout.component';
     SummaryComponent,
     LeaderboardComponent,
     AdminScoringComponent,
-    AdminScoringEditComponent,
     ErrorPageComponent,
     LogoutComponent
   ],
@@ -94,7 +93,9 @@ import { LogoutComponent } from './logout/logout.component';
   MatCardModule, MatSlideToggleModule, MatListModule, MatTableModule, MatExpansionModule, MatBottomSheetModule, ServiceWorkerModule.register('ngsw-worker.js', { enabled: environment.production })
   ],
   entryComponents: [QuotablesComponent],
-  providers: [],
+  providers: [
+    { provide: HTTP_INTERCEPTORS, useClass: ErrorInterceptor, multi: true },
+  ],
   bootstrap: [AppComponent]
 })
 export class AppModule { }

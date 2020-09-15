@@ -148,6 +148,7 @@ export class LeaderboardComponent implements OnInit, OnDestroy {
       });
     }
   }
+
   
 /*
   getAllGroups(event: Event) {

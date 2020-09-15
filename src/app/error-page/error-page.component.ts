@@ -7,9 +7,13 @@ import { Component, OnInit } from '@angular/core';
 })
 export class ErrorPageComponent implements OnInit {
 
+  error: string;
+
   constructor() { }
 
   ngOnInit(): void {
+    this.error = localStorage.getItem('error');
+    console.error(localStorage.getItem('fullError'));
   }
 
 }

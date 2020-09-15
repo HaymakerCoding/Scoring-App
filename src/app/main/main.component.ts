@@ -121,14 +121,10 @@ export class MainComponent implements OnInit, OnDestroy {
    * Get all events in the tournament. For total scoring of all rounds(events)
    */
   getEvents() {
-    this.subscriptions.push(this.eventService.getAllEvents(this.season).subscribe(response => {
-      if (response.status === 200) {
-        this.events = response.payload;
-        this.setLoadingPercent(60);
-        this.getUsersGroup();
-      } else {
-        console.error(response);
-      }
+    this.subscriptions.push(this.eventService.getAllEvents(this.season, '1').subscribe(response => {
+      this.events = response.payload;
+      this.setLoadingPercent(60);
+      this.getUsersGroup();
     }));
   }
 

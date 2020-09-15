@@ -14,6 +14,8 @@ import { ScoringType } from '../main/main.component';
 import { Individual } from '../models/Individual';
 import { Team } from '../models/Team';
 import { EventParticipant } from '../models/EventParticipant';
+import { ScoreService } from '../services/score.service';
+import { MatCheckbox } from '@angular/material/checkbox';
 
 /**
  * Scoring page for 'Admins'.
@@ -47,14 +49,16 @@ export class AdminScoringComponent implements OnInit, OnDestroy {
   validPassword: boolean;
   scoringType: ScoringType;
   indivduals: Individual[];
-  teams: Team[]
+  teams: Team[];
+  results: Results;
 
   constructor(
     private eventService: EventService,
     private activatedRoute: ActivatedRoute,
     private groupService: GroupService,
     private dialog: MatDialog,
-    private snackbar: MatSnackBar
+    private snackbar: MatSnackBar,
+    private scoreService: ScoreService
   ) { }
 
   ngOnInit(): void {
@@ -114,20 +118,15 @@ export class AdminScoringComponent implements OnInit, OnDestroy {
   }
 
   getEvents() {
-    this.subscriptions.push(this.eventService.getAllEvents(this.season).subscribe(response => {
-      if (response.status === 200) {
-        this.events = response.payload;
-        this.setLoadingPercent(40);
-        if (this.eventId) {
-          this.event = this.events.find(x => +x.id === +this.eventId);
-        } else {
-          this.event = this.events[0];
-        }
-        console.log(this.event);
-        this.getScorecard();
+    this.subscriptions.push(this.eventService.getAllEvents(this.season, '1').subscribe(response => {
+      this.setLoadingPercent(40);
+      this.events = response.payload;
+      if (this.eventId) {
+        this.event = this.events.find(x => +x.id === +this.eventId);
       } else {
-        console.error(response);
+        this.event = this.events[0];
       }
+      this.getScorecard();
     }));
   }
 
@@ -138,7 +137,6 @@ export class AdminScoringComponent implements OnInit, OnDestroy {
     this.subscriptions.push(this.eventService.getScorecard(this.event.scorecardId.toString()).subscribe(response => {
       if (response.status === 200) {
         this.scorecard = response.payload;
-        console.log(this.scorecard);
         this.setColumns();
         this.setLoadingPercent(100);
       } else {
@@ -162,6 +160,7 @@ export class AdminScoringComponent implements OnInit, OnDestroy {
       }
     });
     this.holeColumns.push('total');
+    this.holeColumns.push('playoff');
     this.parColumns.push('par');
     this.scorecard.scorecardHoles.forEach(hole => {
       this.parColumns.push('p'+hole.no);
@@ -180,6 +179,7 @@ export class AdminScoringComponent implements OnInit, OnDestroy {
     });
     this.parColumns.push('parTotal');
     this.columns.push('totalScore');
+    this.columns.push('playoffCheck');
     
   }
 
@@ -192,11 +192,21 @@ export class AdminScoringComponent implements OnInit, OnDestroy {
         } else {
           this.indivduals = response.payload;
         }
-        this.setScores()
-        this.checkScores();
+        this.getScores()
       } else {
         console.error(response);
       }
+    }));
+  }
+
+  getScores() {
+    const eventIds: string[] = [];
+    eventIds.push(this.event.id.toString());
+    this.subscriptions.push(this.scoreService.getScores(eventIds, this.scoringType, this.divisionSelected.competitionId.toString()).subscribe(response => {
+      this.results = response.payload;
+      console.log(this.results);
+      this.setPos();
+      this.setLoadingPercent(100);
     }));
   }
 
@@ -222,7 +232,7 @@ export class AdminScoringComponent implements OnInit, OnDestroy {
   }
 
   getDatasource() {
-    return this.scoringType === ScoringType.TEAM ? new MatTableDataSource(this.teams) : new MatTableDataSource(this.indivduals);
+    return new MatTableDataSource(this.results.eventScores[0].scores);
   }
 
   editScores(participant: EventParticipant, dialog) {
@@ -325,7 +335,6 @@ export class AdminScoringComponent implements OnInit, OnDestroy {
 
   /**
    * Check if each user in group has scores. If score id is null then we create an initial score record for the participant
-   */
   checkScores() {
     const participantsToInit: EventParticipant[] = [];
     if (this.scoringType === ScoringType.TEAM) {
@@ -347,6 +356,7 @@ export class AdminScoringComponent implements OnInit, OnDestroy {
       this.setLoadingPercent(100);
     }
   }
+  */
   
   /**
    * Initialize a scoring record for GROUP participants missing a scoring ID
@@ -526,59 +536,33 @@ export class AdminScoringComponent implements OnInit, OnDestroy {
     }));
   }
 
-  getTotalHolesComplete(participant): number {
-    let total: number = 0;
-    participant.holeScores.forEach(holeScore => {
-      if (+holeScore.id) {
-        total++;
-      }
-    });
-    return total;
-  }
-
-  setScores() {
-    console.log(this.scorecard);
-    if (this.scoringType === ScoringType.TEAM) {
-      this.teams.forEach( team => {
-        team.score = this.getScore(team, this.getTotalHolesComplete(team));
-      });
-      this.sortScores(this.teams);
-    } else {
-      this.indivduals.forEach( x => {
-        x.score = this.getScore(x, this.getTotalHolesComplete(x));
-      });
-      this.sortScores(this.indivduals);
-    }
-  }
-
-  sortScores(participants: any[]) {
-    if (participants) {
-      participants.sort((a, b) => {
-        return a.score - b.score;
-      });
-    }
-  }
-
   /**
-   * Return the participants current score.
-   * Compare their hole scores total to toal pars.
-   * @param participant Grooup Participant
-   * @param maxHoleComplete The Max hole the participant has played up to
+   * Set all participants positions in the scoring by score
    */
-  getScore(participant: EventParticipant, maxHoleComplete: number): number {
-    let targetPar = 0;
-    let usersScore = 0;
-    this.scorecard.scorecardHoles.forEach(hole => {
-      if (+hole.no <= +maxHoleComplete) {
-        targetPar += +hole.par;
+  setPos() {
+    let index = 0;
+    let posNum = 1;
+    let currentTiePos;
+    this.results.participants.forEach(x => {
+      if (index !== 0) {
+        const aboveTeam = this.results.participants[index - 1];
+        if (aboveTeam) {
+          if (+aboveTeam.finalScore === +x.finalScore) {
+            currentTiePos = currentTiePos ? currentTiePos : posNum;
+            x.pos = 'T' + (currentTiePos);
+            aboveTeam.pos = 'T' + (currentTiePos);
+            posNum += 1;
+          } else {
+            currentTiePos = null;
+            posNum += 1;
+            x.pos = posNum;
+          }
+        }
+      } else {
+        x.pos = posNum;
       }
+      index += 1;
     });
-    participant.holeScores.forEach(holeScore => {
-      if (+holeScore.hole <= +maxHoleComplete) {
-        usersScore += +holeScore.score;
-      }
-    });
-    return usersScore - targetPar;
   }
 
   /**
@@ -601,34 +585,6 @@ export class AdminScoringComponent implements OnInit, OnDestroy {
     }
   }
 
-  /**
-   * Get players total for the Back 9 holes (10-18)
-   * @param participant Group Participant
-   */
-  getPlayerBackTotal(participant) {
-    let total = 0;
-    participant.holeScores.forEach(holeScore => {
-      if (+holeScore.hole >= 10) {
-        total += +holeScore.score;
-      }
-    });
-    return total;
-  }
-
-  /**
-   * Get the players total for the Front 9 holes (1-9)
-   * @param participant Group participant
-   */
-  getPlayerFrontTotal(participant) {
-    let total = 0;
-    participant.holeScores.forEach(holeScore => {
-      if (+holeScore.hole < 10) {
-        total += +holeScore.score;
-      }
-    });
-    return total;
-  }
-
   getFrontParTotal() {
     let total = 0;
     this.scorecard.scorecardHoles.forEach(hole => {
@@ -649,6 +605,24 @@ export class AdminScoringComponent implements OnInit, OnDestroy {
     return total;
   }
 
+  getPos(participant) {
+    return this.results.participants.find(x => +x.participantId === +participant.participantId).pos;
+  }
+
+  /**
+   * Toggle whether the player won a playoff or not
+   * @param checkbox Match checkbox changed
+   * @param score Score
+   */
+  onPlayoffToggle(checkbox: MatCheckbox, score: Score) {
+    const wonPlayoff = checkbox.checked === true ? '1' : '0';
+    this.subscriptions.push(this.scoreService.updatePlayoffWinner(score.scoreId, wonPlayoff).subscribe(response => {
+      if (response.status === 200) {
+        score.wonPlayoff = wonPlayoff;
+      }
+    }));
+  }
+
   
 
 }
@@ -656,4 +630,38 @@ export class AdminScoringComponent implements OnInit, OnDestroy {
 interface Problem {
   participant: EventParticipant;
   holeScores: HoleScore[]
+}
+
+interface Results {
+  participants: Participant[],
+  eventScores: EventScore[];
+}
+
+interface Participant {
+  participantId: number,
+  members: any[],
+  holesComplete: number,
+  finalScore: number,
+  pos: any
+}
+
+export interface EventScore {
+  eventId: number,
+  name: string,
+  eventDate: any,
+  courseName: string,
+  courseShortName: string,
+  scores: Score[]
+}
+
+interface Score {
+  participantId: number,
+  teamMembers: any[],
+  scoreId: number,
+  holeScores: HoleScore[],
+  frontScore: number,
+  backScore: number,
+  total: number,
+  holesComplete: number,
+  wonPlayoff: string
 }

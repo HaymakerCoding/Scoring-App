@@ -12,6 +12,8 @@ import { EventParticipant } from '../models/EventParticipant';
 })
 export class EventService {
 
+  private _ApiBaseUrl = 'https://api.clubeg.golf/';
+
   constructor(
     private http: HttpClient,
     private authService: AuthService
@@ -47,12 +49,13 @@ export class EventService {
   }
    
   /**
-   * Get all tournament events by a tournament year record id
+   * Get all events by a tournament season
    * @param yearId Tournament Year ID
    */
-  getAllEvents(season: Season) {
-    const params = new HttpParams().set('seasonId', season.id.toString())
-    return this.http.get<any>('https://clubeg.golf/common/api_REST/v1/clubeg/event/get-all/index.php',
+  getAllEvents(season: Season, current: string) {
+    const params = new HttpParams().set('seasonId', season.id.toString());
+    params.append('current', current);
+    return this.http.get<any>(this._ApiBaseUrl + 'events',
     { params }).pipe(map(response => {
       return response;
     }));

@@ -41,7 +41,7 @@ table {
   background-color:rgba(49,49,54,80%);
   color:white;
 }
-.clickable{
+.name-col{
   cursor: pointer;
 }
 
@@ -52,8 +52,11 @@ table {
 .name-col > td {
   text-align: left!important;
 }
-.clickable:hover{
-  border: 2px solid #107896;
+.name-col:hover{
+  background-color: #107896;
+}
+.name-col:hover{
+  color:white;
 }
 .hover-link:hover{
   cursor: pointer;
