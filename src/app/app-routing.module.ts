@@ -14,6 +14,7 @@ const routes: Routes = [
   { path: 'login', component: LoginComponent },
   { path: 'scoring/:eventTypeId/:eventId', component: MainComponent,  canActivate: [AuthGuardService]},
   { path: 'admin/:eventTypeId/:eventId', component: AdminScoringComponent, canActivate: [AuthGuardService] },
+  { path: 'admin/:eventTypeId', component: AdminScoringComponent, canActivate: [AuthGuardService] },
 
   { path: 'slammer-tour/pick-date', component: SlammerPickDateComponent , canActivate: [AuthGuardService]},
   { path: 'slammer-tour/scoring/:id', component: SlammerScoringComponent, canActivate: [AuthGuardService]},

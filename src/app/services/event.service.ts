@@ -50,7 +50,7 @@ export class EventService {
    
   /**
    * Get all events by a tournament season
-   * @param yearId Tournament Year ID
+   * @param season Season
    */
   getAllEvents(season: Season, current: string) {
     const params = new HttpParams().set('seasonId', season.id.toString());
@@ -114,20 +114,6 @@ export class EventService {
     const headers = this.authService.getAuthHeader();
     return this.http.post<any>('https://clubeg.golf/common/api_REST/v1/clubeg/event/group/score/init-multiple-scores/index.php',
     { participants, scorecardId, teeblockId }, { headers })
-    .pipe(map(response => {
-      return response;
-    }));
-  }
-
-  /**
-   * 'Admin' scoring, by password verification on event password
-   * @param participant 
-   * @param password 
-   */
-  saveParticipantScoreByPassword(participant: EventParticipant, password: string, eventId: number) {
-    const headers = this.authService.getAuthHeader();
-    return this.http.post<any>('https://clubeg.golf/common/api_REST/v1/clubeg/event/group/score/save-participant-scores-by-password/index.php',
-    { participant, password, eventId }, { headers })
     .pipe(map(response => {
       return response;
     }));

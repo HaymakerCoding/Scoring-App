@@ -29,7 +29,11 @@ export class ErrorInterceptor implements HttpInterceptor {
         }
         localStorage.setItem('error', errorMessage );
         localStorage.setItem('fullError', JSON.stringify(error));
-        this.router.navigate(['error']);
+        if (+error.status === 401 || error.status === 403) {
+          this.router.navigate(['login']);
+        } else {
+          this.router.navigate(['error']);
+        }
         return throwError(errorMessage);
       })
     );

@@ -94,8 +94,12 @@ export class AdminScoringComponent implements OnInit, OnDestroy {
         this.scoringType = ScoringType.INDIVIDUAL;
         break;
       }
+      case 6: {
+        this.scoringType = ScoringType.INDIVIDUAL;
+        break;
+      }
       default: {
-        this.snackbar.open('Error - scoring type not set for this event type');
+        this.snackbar.open('Error - scoring type not set for this event type', 'dismiss');
         break;
       }
     }
@@ -107,6 +111,7 @@ export class AdminScoringComponent implements OnInit, OnDestroy {
   getCurrentSeason() {
     const year = new Date().getFullYear();
     this.subscriptions.push(this.eventService.getSeason(this.eventTypeId.toString(), year.toString()).subscribe(response => {
+      console.log(response);
       if (response.status === 200) {
         this.season = response.payload;
         this.setLoadingPercent(20);
@@ -119,6 +124,7 @@ export class AdminScoringComponent implements OnInit, OnDestroy {
 
   getEvents() {
     this.subscriptions.push(this.eventService.getAllEvents(this.season, '1').subscribe(response => {
+      console.log(response);
       this.setLoadingPercent(40);
       this.events = response.payload;
       if (this.eventId) {
@@ -134,15 +140,20 @@ export class AdminScoringComponent implements OnInit, OnDestroy {
    * Get the scorecard for the event
    */
   getScorecard() {
-    this.subscriptions.push(this.eventService.getScorecard(this.event.scorecardId.toString()).subscribe(response => {
-      if (response.status === 200) {
-        this.scorecard = response.payload;
-        this.setColumns();
-        this.setLoadingPercent(100);
-      } else {
-        console.error(response);
-      }
-    }));
+    if (!this.event.scorecardId) {
+      this.snackbar.open('Error: missing scorecard for this event (' + this.event.name + ')', 'dismiss');
+      this.setLoadingPercent(100);
+    } else {
+      this.subscriptions.push(this.eventService.getScorecard(this.event.scorecardId.toString()).subscribe(response => {
+        if (response.status === 200) {
+          this.scorecard = response.payload;
+          this.setColumns();
+          this.setLoadingPercent(100);
+        } else {
+          console.error(response);
+        }
+      }));
+    }
   }
 
   /**
@@ -183,12 +194,12 @@ export class AdminScoringComponent implements OnInit, OnDestroy {
     
   }
 
+  /*
   getEventParticipants() {
     this.subscriptions.push(this.eventService.getParticipantsByDivision(this.event.id.toString(), this.divisionSelected.competitionId.toString(), this.scoringType).subscribe(response => {
       if (response.status === 200) {
         if (this.scoringType === ScoringType.TEAM) {
           this.teams = response.payload;
-          console.log(this.teams);
         } else {
           this.indivduals = response.payload;
         }
@@ -198,6 +209,7 @@ export class AdminScoringComponent implements OnInit, OnDestroy {
       }
     }));
   }
+  */
 
   getScores() {
     const eventIds: string[] = [];
@@ -219,7 +231,8 @@ export class AdminScoringComponent implements OnInit, OnDestroy {
    */
   onDivisionSelected() {
     this.setLoadingPercent(20);
-    this.getEventParticipants();
+    this.getScores();
+    //this.getEventParticipants();
   }
   
   /**
@@ -318,65 +331,18 @@ export class AdminScoringComponent implements OnInit, OnDestroy {
     if (!this.password || this.password === '') {
       this.validPassword = false;
     } else {
-      this.eventService.saveParticipantScoreByPassword(participant, this.password, this.event.id).subscribe(response => {
+      this.subscriptions.push(this.scoreService.saveParticipantScoreByPassword(participant, this.password, this.event.id).subscribe(response => {
         if (response.status === 200) {
           this.close();
           this.setLoadingPercent(25);
-          this.getEventParticipants();
+          this.getScores();
           this.snackbar.open('Scores saved!', '', { duration: 1100 });
         } else if (response.status === 509 ) {
           this.snackbar.open('Invalid password', 'dismiss');
         } else {
           console.error(response);
         }
-      });
-    }
-  }
-
-  /**
-   * Check if each user in group has scores. If score id is null then we create an initial score record for the participant
-  checkScores() {
-    const participantsToInit: EventParticipant[] = [];
-    if (this.scoringType === ScoringType.TEAM) {
-      this.teams.forEach(participant => {
-        if (participant.scoreId === null && participant.groupParticipantId && +participant.groupParticipantId !== 0) {
-          participantsToInit.push(participant);
-        } 
-      });
-    } else {
-      this.indivduals.forEach(participant => {
-        if (participant.scoreId === null) {
-          participantsToInit.push(participant);
-        } 
-      });
-    }
-    if (participantsToInit.length > 0) {
-      this.initScores(participantsToInit);
-    } else {
-      this.setLoadingPercent(100);
-    }
-  }
-  */
-  
-  /**
-   * Initialize a scoring record for GROUP participants missing a scoring ID
-   * @param participants 
-   */
-  initScores(participants: EventParticipant[]) {
-    this.setLoadingPercent(25);
-    console.log('initalizing scores for ' + participants.length + ' participants');
-    const teeBlock = this.getDefaultTeeBlockId();
-    if (teeBlock) {
-      this.subscriptions.push(this.eventService.initMultipleScores(participants, this.event.scorecardId, teeBlock).subscribe(response => {
-        if (response.status === 201) {
-          this.setLoadingPercent(100);
-          this.snackbar.open('Background process ran to initialize score IDs missing. Refresh page needed.', 'dismiss');
-        } else {
-          console.error(response);
-        }
       }));
-    } else {
-      console.error('Error, no default tee block found on the scorecard');
     }
   }
 
@@ -443,14 +409,17 @@ export class AdminScoringComponent implements OnInit, OnDestroy {
    */
   checkNumIssues(): number {
     let issues = 0;
-    this.teams.forEach(participant => {
-      this.scorecard.scorecardHoles.forEach(hole => {
-        const found = participant.holeScores.filter(x => +x.teeBlockHoleId === +hole.teeBlockHoles[0].holeId);
-        if (found.length > 1) {
-          issues++;
-        }
+    const eventScores = this.results.eventScores.find(x => +x.eventId === +this.event.id);
+    if (eventScores) {
+      eventScores.scores.forEach(participant => {
+        this.scorecard.scorecardHoles.forEach(hole => {
+          const found = participant.holeScores.filter(x => +x.teeBlockHoleId === +hole.teeBlockHoles[0].holeId);
+          if (found.length > 1) {
+            issues++;
+          }
+        });
       });
-    });
+    }
     return issues;
   }
 

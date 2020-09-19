@@ -3,6 +3,7 @@ import { HttpHeaders, HttpClient, HttpParams } from '@angular/common/http';
 import { AuthService } from './auth.service';
 import { ScoringType } from '../main/main.component';
 import { Score } from '../models/SlammerGroup';
+import { EventParticipant } from '../models/EventParticipant';
 
 @Injectable({
   providedIn: 'root'
@@ -34,6 +35,17 @@ export class ScoreService {
   updatePlayoffWinner(scoreId: number, wonPlayoff: string) {
     const headers = this.authService.getAuthHeader();
     return this.http.patch<any>(this._ApiBaseUrl + 'score-won-playoff', { scoreId, wonPlayoff }, { headers })
+  }
+
+  /**
+   * 'Admin' scoring, by password verification on event password
+   * @param participant 
+   * @param password 
+   */
+  saveParticipantScoreByPassword(participant: EventParticipant, password: string, eventId: number) {
+    const headers = this.authService.getAuthHeader();
+    return this.http.post<any>(this._ApiBaseUrl + 'hole-scores',
+    { participant, password, eventId }, { headers });
   }
 
 }
