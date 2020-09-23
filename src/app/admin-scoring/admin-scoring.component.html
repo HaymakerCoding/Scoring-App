@@ -9,13 +9,22 @@
     </div>
     <div *ngIf="loadingPercent === 100">
         
+        <mat-form-field appearance="outline">
+            <mat-label>Tournament</mat-label>
+            <mat-select (selectionChange)="onTournamentSelected()" [(ngModel)]="tournamentSelected">
+                <mat-option [value]="tournament" *ngFor="let tournament of tournaments">{{ tournament.name}}</mat-option>
+            </mat-select>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+            <mat-label>{{ event && event.qualifyingRound ? event.qualifyingRound : 'Event' }}</mat-label>
+            <mat-select (selectionChange)="onEventSelected()" [(ngModel)]="event">
+                <mat-option [value]="event" *ngFor="let event of events">{{ event.name}}</mat-option>
+            </mat-select>
+        </mat-form-field>
+
+        <!--Password required for seeing division select-->
         <div *ngIf="validPassword === false">
-            <mat-form-field appearance="outline">
-                <mat-label>{{ event.qualifyingRound ? event.qualifyingRound : 'Event' }}</mat-label>
-                <mat-select (selectionChange)="onEventSelected()" [(ngModel)]="event">
-                    <mat-option [value]="event" *ngFor="let event of events">{{ event.name}}</mat-option>
-                </mat-select>
-            </mat-form-field>
             <p>Please enter the password for the event.</p>
             <mat-form-field appearance="outline">
                 <mat-label>Password</mat-label>
@@ -25,20 +34,13 @@
             <button mat-raised-button color="primary" (click)="onSubmitPassword(passInput.value)">Submit</button>
         </div>
 
-        <div *ngIf="validPassword === true">
-            <mat-form-field appearance="outline">
-                <mat-label>{{ event.qualifyingRound ? event.qualifyingRound : 'Event' }}</mat-label>
-                <mat-select (selectionChange)="onEventSelected()" [(ngModel)]="event">
-                    <mat-option [value]="event" *ngFor="let event of events">{{ event.name }}</mat-option>
-                </mat-select>
-            </mat-form-field>
-            <mat-form-field appearance="outline">
-                <mat-label>Division</mat-label>
-                <mat-select (selectionChange)="onDivisionSelected()" [(ngModel)]="divisionSelected">
-                    <mat-option [value]="division" *ngFor="let division of event.divisionList">{{ division.name }}</mat-option>
-                </mat-select>
-            </mat-form-field>
-        </div>
+        <mat-form-field appearance="outline" *ngIf="validPassword === true">
+            <mat-label>Division</mat-label>
+            <mat-select (selectionChange)="onDivisionSelected()" [(ngModel)]="divisionSelected">
+                <mat-option [value]="division" *ngFor="let division of event.divisionList">{{ division.name }}</mat-option>
+            </mat-select>
+        </mat-form-field>
+ 
     
         <div class="table-container" *ngIf="divisionSelected">
    
@@ -63,7 +65,13 @@
                     <th class="text-center" mat-header-cell *matHeaderCellDef>Back</th> 
                 </ng-container>
                 <ng-container [matColumnDef]="'playoff'">
-                    <th colspan="2" class="text-center" mat-header-cell *matHeaderCellDef>Won Playoff?</th> 
+                    <th rowspan="2" class="text-center" mat-header-cell *matHeaderCellDef>Won Playoff?</th> 
+                </ng-container>
+                <ng-container [matColumnDef]="'L3label'">
+                    <th rowspan="2" class="text-center" mat-header-cell *matHeaderCellDef>L3</th> 
+                </ng-container>
+                <ng-container [matColumnDef]="'L6label'">
+                    <th rowspan="2" class="text-center" mat-header-cell *matHeaderCellDef>L6</th> 
                 </ng-container>
                 <ng-container [matColumnDef]="'frontParTotal'">
                     <th class="text-center" mat-header-cell *matHeaderCellDef>{{ getFrontParTotal() }}</th> 
@@ -101,21 +109,28 @@
                             {{ participant.total > 0 ? '+' + participant.total : participant.total === 0 ? 'E' : participant.total }}
                         </td>
                     </ng-container>
-                    <ng-container *ngIf="column !== 'name' && column !== 'totalScore' && column !== 'backPlayerTotal' && column !== 'frontPlayerTotal' && column !== 'playoffCheck'" [matColumnDef]="column">
+                    <ng-container *ngIf="column !== 'name' && column !== 'totalScore' && column !== 'backPlayerTotal' && column !== 'frontPlayerTotal' && column !== 'playoffCheck' && column !== 'L3' && column !== 'L6'" 
+                        [matColumnDef]="column">
                         <td class="firstNum" mat-cell *matCellDef="let participant">
                             {{ column === 'name' ? participant.fullName : getHoleScore(participant, column) }}
                         </td>
                     </ng-container>
                     <ng-container *ngIf="column === 'backPlayerTotal'" [matColumnDef]="column">
-                        <td class="text-center back-col" mat-cell *matCellDef="let participant">{{ participant.backScore }}</td>
+                        <td class="text-center back-col" mat-cell *matCellDef="let participant">{{ participant.backScore > 0 ? '+' + participant.backScore : participant.backScore  === 0 ? 'E' : participant.backScore }}</td>
                     </ng-container>
                     <ng-container *ngIf="column === 'frontPlayerTotal'" [matColumnDef]="column">
-                        <td class="text-center front-col" mat-cell *matCellDef="let participant">{{ participant.frontScore }}</td>
+                        <td class="text-center front-col" mat-cell *matCellDef="let participant">{{ participant.frontScore > 0 ? '+' + participant.frontScore : participant.frontScore  === 0 ? 'E' : participant.frontScore }}</td>
                     </ng-container>
                     <ng-container *ngIf="column === 'playoffCheck'" [matColumnDef]="column">
-                        <td class="text-center" mat-cell *matCellDef="let participant">
+                        <td class="text-center" mat-cell *matCellDef="let participant" style="min-width:80px;">
                             <mat-checkbox (change)="onPlayoffToggle($event, participant)" [checked]="participant.wonPlayoff === '1'"></mat-checkbox>
                         </td>
+                    </ng-container>
+                    <ng-container *ngIf="column === 'L3'" [matColumnDef]="column">
+                        <td class="text-center" mat-cell *matCellDef="let participant">{{ participant.scoreLastThree }}</td>
+                    </ng-container>
+                    <ng-container *ngIf="column === 'L6'" [matColumnDef]="column">
+                        <td class="text-center" mat-cell *matCellDef="let participant">{{ participant.scoreLastSix }}</td>
                     </ng-container>
                     
                 </div>

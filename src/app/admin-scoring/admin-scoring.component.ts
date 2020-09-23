@@ -16,6 +16,8 @@ import { Team } from '../models/Team';
 import { EventParticipant } from '../models/EventParticipant';
 import { ScoreService } from '../services/score.service';
 import { MatCheckbox } from '@angular/material/checkbox';
+import { TournamentType } from '../models/EventBasic';
+import { Tournament } from '../models/Tournament';
 
 /**
  * Scoring page for 'Admins'.
@@ -51,6 +53,8 @@ export class AdminScoringComponent implements OnInit, OnDestroy {
   indivduals: Individual[];
   teams: Team[];
   results: Results;
+  tournamentSelected: Tournament;
+  tournaments: Tournament[] = [];
 
   constructor(
     private eventService: EventService,
@@ -78,9 +82,13 @@ export class AdminScoringComponent implements OnInit, OnDestroy {
     this.subscriptions.push(this.activatedRoute.params.subscribe(( params: Params ) => {
       this.eventTypeId = params.eventTypeId;
       this.eventId = params.eventId;
-      this.setScoringType();
-      this.setLoadingPercent(10);
-      this.getCurrentSeason();
+      if (this.eventTypeId) {
+        this.setScoringType();
+        this.setLoadingPercent(10);
+        this.getCurrentSeason();
+      } else {
+        this.getTournaments();
+      }
     }));
   }
 
@@ -103,6 +111,10 @@ export class AdminScoringComponent implements OnInit, OnDestroy {
         break;
       }
     }
+  }
+
+  getTournaments() {
+    alert('TODO');
   }
 
   /**
@@ -172,6 +184,8 @@ export class AdminScoringComponent implements OnInit, OnDestroy {
     });
     this.holeColumns.push('total');
     this.holeColumns.push('playoff');
+    this.holeColumns.push('L3label');
+    this.holeColumns.push('L6label');
     this.parColumns.push('par');
     this.scorecard.scorecardHoles.forEach(hole => {
       this.parColumns.push('p'+hole.no);
@@ -191,25 +205,9 @@ export class AdminScoringComponent implements OnInit, OnDestroy {
     this.parColumns.push('parTotal');
     this.columns.push('totalScore');
     this.columns.push('playoffCheck');
-    
+    this.columns.push('L3');
+    this.columns.push('L6');
   }
-
-  /*
-  getEventParticipants() {
-    this.subscriptions.push(this.eventService.getParticipantsByDivision(this.event.id.toString(), this.divisionSelected.competitionId.toString(), this.scoringType).subscribe(response => {
-      if (response.status === 200) {
-        if (this.scoringType === ScoringType.TEAM) {
-          this.teams = response.payload;
-        } else {
-          this.indivduals = response.payload;
-        }
-        this.getScores()
-      } else {
-        console.error(response);
-      }
-    }));
-  }
-  */
 
   getScores() {
     const eventIds: string[] = [];
@@ -232,7 +230,6 @@ export class AdminScoringComponent implements OnInit, OnDestroy {
   onDivisionSelected() {
     this.setLoadingPercent(20);
     this.getScores();
-    //this.getEventParticipants();
   }
   
   /**
@@ -476,6 +473,13 @@ export class AdminScoringComponent implements OnInit, OnDestroy {
   }
 
   /**
+   * User selected/changed tournament. Reload all data past event step
+   */
+  onTournamentSelected() {
+    alert('wip');
+  }
+
+  /**
    * User changed the event.
    * Dump data specific to event and fetch new from db
    */
@@ -506,7 +510,8 @@ export class AdminScoringComponent implements OnInit, OnDestroy {
   }
 
   /**
-   * Set all participants positions in the scoring by score
+   * Set all participants positions in the scoring by score. Ties are represented by appending with 'T'.
+   * Ties are not increased in number visually, but those spots are still counted. Example 3 ties in the 2nd spot would all be 'T2' but after them it would continue at 4.
    */
   setPos() {
     let index = 0;
