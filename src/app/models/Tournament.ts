@@ -1,11 +1,11 @@
-import { BasicTournament } from './BasicTournament';
-import { Division } from './Division';
+
+import { EventDivision } from './EventDivision';
 
 /**
  * Represent a tournament, all data
  * @author Malcolm Roy
  */
-export class Tournament extends BasicTournament {
+export class Tournament {
 
   constructor(
     public id: number,
@@ -28,7 +28,7 @@ export class Tournament extends BasicTournament {
     public rules: Rule[],
     public rulesHeader: string,
     public rulesLastUpdated: any,
-    public divisions: Division[],
+    public divisions: EventDivision[],
     public header: string,
     public subHeader: string,
     public trophyPic: string,
@@ -36,7 +36,7 @@ export class Tournament extends BasicTournament {
     public scoringLink: string,
     public courseDomain: string
   ) {
-    super(id, url, name, host);
+
   }
 
 }

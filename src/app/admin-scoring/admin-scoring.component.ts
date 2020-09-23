@@ -18,6 +18,7 @@ import { ScoreService } from '../services/score.service';
 import { MatCheckbox } from '@angular/material/checkbox';
 import { TournamentType } from '../models/EventBasic';
 import { Tournament } from '../models/Tournament';
+import { TournamentService } from '../services/tournament.service';
 
 /**
  * Scoring page for 'Admins'.
@@ -62,7 +63,8 @@ export class AdminScoringComponent implements OnInit, OnDestroy {
     private groupService: GroupService,
     private dialog: MatDialog,
     private snackbar: MatSnackBar,
-    private scoreService: ScoreService
+    private scoreService: ScoreService,
+    private tournamentService: TournamentService
   ) { }
 
   ngOnInit(): void {
@@ -114,7 +116,10 @@ export class AdminScoringComponent implements OnInit, OnDestroy {
   }
 
   getTournaments() {
-    alert('TODO');
+    this.subscriptions.push(this.tournamentService.getAll().subscribe(response => {
+      this.tournaments = response.payload;
+      this.setLoadingPercent(100);
+    }));
   }
 
   /**
@@ -123,7 +128,6 @@ export class AdminScoringComponent implements OnInit, OnDestroy {
   getCurrentSeason() {
     const year = new Date().getFullYear();
     this.subscriptions.push(this.eventService.getSeason(this.eventTypeId.toString(), year.toString()).subscribe(response => {
-      console.log(response);
       if (response.status === 200) {
         this.season = response.payload;
         this.setLoadingPercent(20);
@@ -136,7 +140,6 @@ export class AdminScoringComponent implements OnInit, OnDestroy {
 
   getEvents() {
     this.subscriptions.push(this.eventService.getAllEvents(this.season, '1').subscribe(response => {
-      console.log(response);
       this.setLoadingPercent(40);
       this.events = response.payload;
       if (this.eventId) {
@@ -214,7 +217,7 @@ export class AdminScoringComponent implements OnInit, OnDestroy {
     eventIds.push(this.event.id.toString());
     this.subscriptions.push(this.scoreService.getScores(eventIds, this.scoringType, this.divisionSelected.competitionId.toString()).subscribe(response => {
       this.results = response.payload;
-      console.log(this.results);
+      console.log(this.results.eventScores);
       this.setPos();
       this.setLoadingPercent(100);
     }));
@@ -476,7 +479,12 @@ export class AdminScoringComponent implements OnInit, OnDestroy {
    * User selected/changed tournament. Reload all data past event step
    */
   onTournamentSelected() {
-    alert('wip');
+    this.event = null;
+    this.divisionSelected = null;
+    this.eventTypeId = this.tournamentSelected.eventTypeId.toString();
+    this.setScoringType();
+    this.setLoadingPercent(10);
+    this.getCurrentSeason();
   }
 
   /**

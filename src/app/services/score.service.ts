@@ -3,19 +3,20 @@ import { HttpHeaders, HttpClient, HttpParams } from '@angular/common/http';
 import { AuthService } from './auth.service';
 import { ScoringType } from '../main/main.component';
 import { Score } from '../models/SlammerGroup';
+import { Service } from '../services/service.ts';
 import { EventParticipant } from '../models/EventParticipant';
 
 @Injectable({
   providedIn: 'root'
 })
-export class ScoreService {
-
-  private _ApiBaseUrl = 'https://api.clubeg.golf/';
+export class ScoreService extends Service {
 
   constructor(
-    private http: HttpClient,
-    private authService: AuthService
-  ) { }
+    protected http: HttpClient,
+    protected authService: AuthService
+  ) {
+    super(http, authService);
+   }
 
   /**
    * Get scores for multiple events, by team or individual
